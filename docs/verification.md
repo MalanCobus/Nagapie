@@ -1,3 +1,15 @@
+# Review fixes — 18 September 2026
+
+- All 93 .NET tests passed in Release: 28 client and 65 API/provider/account/database tests.
+- SQL Server tests ran against a newly created disposable LocalDB database, not the application database. They use actual EF migrations from the initial schema, verify legacy import and idempotent reruns, concurrent category commands, runtime reads/writes/retries under read/write-only permissions, and denied DDL.
+- CI now supplies SQL Server 2022 and runs the same provider test.
+- Regression coverage includes concurrent client category saves, exact retry after a lost commit response, changed-operation/reset rejection, authoritative timestamps and let-go transitions, bounded filtered queries, isolated legacy import failures, server-owned usage, account-bound licenses, immediate registration sign-in without email confirmation, and content-safe exception logging.
+- Four service-worker tests passed. Whitespace verification and Release publishing passed.
+- The deployment workflow separates automatic upgrades from ordinary website startup. No hosted deployment or production database migration was performed.
+- Email delivery, confirmation and password recovery were removed at user request. No email provider setup is required. The Azure deployment workflow still requires the documented environment settings/secrets; no live payment-provider transaction was sent.
+- The historical reports below describe earlier builds and their then-current limitations.
+
+---
 # SQL/accounts verification — 18 September 2026
 
 - 68 automated .NET tests pass in Release (23 client, 45 API/provider/account).

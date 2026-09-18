@@ -39,7 +39,7 @@ public partial class Home
         State.Draft.Text = (e.Value?.ToString() ?? "")[..Math.Min(e.Value?.ToString()?.Length ?? 0, 5000)];
         State.Draft.Review = null;
         State.Draft.WasAiProcessed = false;
-        if (State.Store.SavedDumps.Contains(State.Draft.Id))
+        if (State.DraftCommitted)
         {
             State.Draft.Id = Guid.NewGuid();
         }
@@ -135,7 +135,7 @@ public partial class Home
         await StopSpeechAsync();
         await State.SaveDraftAsync();
         saving = false;
-        if (State.Config.PaywallEnabled && State.Access.UnlockToken is null && State.Store.AiDumps.Count >= State.Config.FreeDumpLimit)
+        if (State.Config.PaywallEnabled && State.Access.UnlockToken is null && State.SuccessfulAiDumps >= State.Config.FreeDumpLimit)
         {
             Nav.NavigateTo("/unlock");
             return;
@@ -158,7 +158,7 @@ public partial class Home
             State.Draft.InputMethod,
             categories,
             State.Access.UnlockToken,
-            State.Store.AiDumps.Count);
+            State.SuccessfulAiDumps);
         try
         {
             var result = await Api.ProcessDumpAsync(request, processing.Token);

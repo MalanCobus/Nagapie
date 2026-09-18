@@ -7,11 +7,20 @@ builder.AddNagapieServices();
 builder.AddSqlAccounts();
 var app = builder.Build();
 var migrateOnly = args.Contains("--migrate");
-if (migrateOnly || builder.Configuration.GetValue("Database:ApplyMigrationsOnStartup", true))
+if (migrateOnly || (app.Environment.IsDevelopment() && builder.Configuration.GetValue("Database:ApplyMigrationsOnStartup", false)))
 {
     await using var scope = app.Services.CreateAsyncScope();
-    await scope.ServiceProvider.GetRequiredService<IDatabaseMigrator>()
-        .MigrateAsync(app.Lifetime.ApplicationStopping);
+    try
+    {
+        await scope.ServiceProvider.GetRequiredService<IDatabaseMigrator>()
+            .MigrateAsync(app.Lifetime.ApplicationStopping);
+    }
+    catch when (migrateOnly)
+    {
+        // The migrator already emitted safe diagnostics. Do not print raw SQL exceptions.
+        Environment.ExitCode = 1;
+        return;
+    }
 }
 if (migrateOnly)
 {

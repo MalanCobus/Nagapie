@@ -1,12 +1,14 @@
 using System.Data;
 using System.Text.Json;
+using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using Nagapie.BraindumpLite.Contracts;
 using Nagapie.BraindumpLite.Contracts.Domain;
 
 namespace Nagapie.BraindumpLite.Api.Data;
 
-public sealed partial class RelationalDataStore(NagapieDbContext database, LegacyDataImporter importer) : IRelationalDataStore
+public sealed partial class RelationalDataStore(NagapieDbContext database, LegacyDataImporter importer,
+    Microsoft.Extensions.Options.IOptions<AccessOptions> access) : IRelationalDataStore
 {
     private static JsonElement Json<T>(T data) => JsonSerializer.SerializeToElement(data, JsonSerializerOptions.Web);
 
@@ -18,32 +20,21 @@ public sealed partial class RelationalDataStore(NagapieDbContext database, Legac
             var draft = await database.Drafts.AsNoTracking().SingleAsync(row => row.UserId == userId, cancellationToken);
             return new(draft.IsDeleted ? null : Json(draft.ToContract()), draft.Version);
         }
-        // Keep the data and its reset token in the same consistent snapshot.
-        await using var transaction = await database.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
-        var epoch = await database.RelationalAccounts.Where(row => row.UserId == userId).Select(row => row.Epoch).SingleAsync(cancellationToken);
-        UserDocumentResponse response;
-        if (key == "categories")
+        if (key == "items")
         {
+            var page = await QueryThoughtsAsync(userId, new(), cancellationToken);
+            return new(Json(new ItemStore { Items = page.Items }), page.Epoch, page.RowVersions);
+        }
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            var epoch = await database.RelationalAccounts.Where(row => row.UserId == userId).Select(row => row.Epoch).SingleAsync(cancellationToken);
             var categories = await database.Categories.AsNoTracking().Where(row => row.UserId == userId).ToListAsync(cancellationToken);
-            response = new(Json(categories.OrderBy(row => row.Id).Select(row => row.ToContract())), epoch,
-                categories.ToDictionary(row => row.Id, row => row.Version));
+            if (epoch == await database.RelationalAccounts.Where(row => row.UserId == userId).Select(row => row.Epoch).SingleAsync(cancellationToken))
+                return new(Json(categories.OrderBy(row => row.Id).Select(row => row.ToContract())), epoch,
+                    categories.ToDictionary(row => row.Id, row => row.Version));
         }
-        else
-        {
-            var items = await database.Thoughts.AsNoTracking().Where(row => row.UserId == userId).ToListAsync(cancellationToken);
-            var dumps = await database.BrainDumps.AsNoTracking().Where(row => row.UserId == userId && (row.IsCommitted || row.WasAiProcessed))
-                .Select(row => new { row.Id, row.IsCommitted, row.WasAiProcessed }).ToListAsync(cancellationToken);
-            response = new(Json(new ItemStore
-            {
-                Items = items.Select(row => row.ToContract()).ToList(),
-                SavedDumps = dumps.Where(row => row.IsCommitted).Select(row => row.Id).ToHashSet(),
-                AiDumps = dumps.Where(row => row.WasAiProcessed).Select(row => row.Id).ToHashSet()
-            }), epoch, items.ToDictionary(row => row.Id, row => row.Version));
-        }
-        await transaction.CommitAsync(cancellationToken);
-        return response;
+        throw new DataConflictException();
     }
-
     public async Task<UserDocumentResponse> SaveThoughtsAsync(string userId, SaveThoughtsRequest request, CancellationToken cancellationToken)
     {
         if (request.Upserts is null || request.Deletes is null || request.Upserts.Count + request.Deletes.Count > 5000 ||
@@ -59,6 +50,21 @@ public sealed partial class RelationalDataStore(NagapieDbContext database, Legac
         await importer.EnsureImportedAsync(userId, cancellationToken);
         await using var transaction = await RelationalTransactions.BeginWriteAsync(database, userId, cancellationToken);
         await RequireEpochAsync(userId, request.Epoch, cancellationToken);
+        // A draft ID is a stable operation ID for old clients too. Include the full payload
+        // so reusing an operation ID for a different mutation is always a conflict.
+        var operationId = request.OperationId != Guid.Empty ? request.OperationId : request.CommitDumpId;
+        var requestHash = Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(request, JsonSerializerOptions.Web)));
+        if (operationId is { } retryId)
+        {
+            var receipt = await database.OperationReceipts.AsNoTracking()
+                .SingleOrDefaultAsync(row => row.UserId == userId && row.Id == retryId, cancellationToken);
+            if (receipt is not null)
+            {
+                if (receipt.RequestHash != requestHash)
+                    throw new DataConflictException();
+                return JsonSerializer.Deserialize<UserDocumentResponse>(receipt.ResponseJson, JsonSerializerOptions.Web)!;
+            }
+        }
         var rows = await database.Thoughts.Where(row => row.UserId == userId && ids.Contains(row.Id)).ToDictionaryAsync(row => row.Id, cancellationToken);
         if (request.CommitDumpId is { } commitId)
         {
@@ -67,7 +73,7 @@ public sealed partial class RelationalDataStore(NagapieDbContext database, Legac
             var draft = await database.Drafts.SingleAsync(row => row.UserId == userId, cancellationToken);
             if (draft.IsDeleted || draft.Id != commitId || draft.Version != request.DraftVersion)
                 throw new DataConflictException();
-            if (request.Upserts.Count == 0 || request.Upserts.Any(change => change.Version != Guid.Empty || change.Value.SourceDumpId != commitId))
+            if (request.Upserts.Count is < 1 or > 30 || request.Deletes.Count != 0 || request.Upserts.Any(change => change.Version != Guid.Empty || change.Value.SourceDumpId != commitId))
                 throw new InvalidDataException();
             var dump = await database.BrainDumps.SingleOrDefaultAsync(row => row.UserId == userId && row.Id == commitId, cancellationToken);
             if (dump is null)
@@ -83,22 +89,27 @@ public sealed partial class RelationalDataStore(NagapieDbContext database, Legac
             dump.InputMethod = draft.InputMethod;
             dump.OriginalAvailable = true;
             dump.IsCommitted = true;
-            dump.WasAiProcessed = draft.WasAiProcessed;
+            dump.WasAiProcessed = await database.ProcessedDumps.AnyAsync(row => row.UserId == userId && row.Id == commitId, cancellationToken);
         }
-        var categories = await database.Categories.Where(row => row.UserId == userId).Select(row => row.Id).ToListAsync(cancellationToken);
+        var categories = await database.Categories.Where(row => row.UserId == userId).ToListAsync(cancellationToken);
+        var now = DateTimeOffset.UtcNow;
         var changedVersions = new Dictionary<Guid, Guid>();
         foreach (var change in request.Upserts)
         {
             rows.TryGetValue(change.Value.Id, out var row);
+            var restoringLetGo = row?.CompletionReason == "let-go" && change.Value.CompletionReason is null;
             if ((row?.Version ?? Guid.Empty) != change.Version)
                 throw new DataConflictException();
-            if (change.Value.CategoryId is { } categoryId && !categories.Contains(categoryId))
+            if (change.Value.CategoryId is { } categoryId && !categories.Any(category => category.Id == categoryId))
                 throw new InvalidDataException();
             if (row is null)
             {
                 if (request.CommitDumpId is null || change.Value.SourceDumpId != request.CommitDumpId)
                     throw new InvalidDataException();
                 row = change.Value.ToRow(userId);
+                row.Text = row.Text.Trim();
+                row.CreatedAtUtc = now;
+                row.UpdatedAtUtc = now;
                 database.Thoughts.Add(row);
             }
             else
@@ -110,9 +121,20 @@ public sealed partial class RelationalDataStore(NagapieDbContext database, Legac
                 row.PlanningHorizon = change.Value.PlanningHorizon;
                 row.PlannedDate = change.Value.PlannedDate;
                 row.CompletionReason = change.Value.CompletionReason;
-                row.CompletedAtUtc = change.Value.CompletedAtUtc;
-                row.UpdatedAtUtc = DateTimeOffset.UtcNow;
+                row.UpdatedAtUtc = now;
             }
+            var letGo = categories.Any(category => category.Id == row.CategoryId && category.Key == "let-go");
+            if (restoringLetGo && letGo)
+            {
+                row.CategoryId = null;
+                letGo = false;
+            }
+            row.CompletionReason = letGo ? "let-go" : change.Value.CompletionReason;
+            row.CompletedAtUtc = row.CompletionReason is null ? null : row.CompletedAtUtc ?? now;
+            // Completion time belongs to the transition, never to the caller.
+            if (row.CompletionReason is not null && (change.Version == Guid.Empty ||
+                database.Entry(row).Property(value => value.CompletionReason).OriginalValue != row.CompletionReason))
+                row.CompletedAtUtc = now;
             row.Version = Guid.NewGuid();
             changedVersions[row.Id] = row.Version;
         }
@@ -125,9 +147,31 @@ public sealed partial class RelationalDataStore(NagapieDbContext database, Legac
         var count = await database.Thoughts.CountAsync(row => row.UserId == userId, cancellationToken);
         if (count + request.Upserts.Count(change => !rows.ContainsKey(change.Value.Id)) - request.Deletes.Count > 5000)
             throw new InvalidDataException();
+        var result = new UserDocumentResponse(Json(request.Upserts.Select(change =>
+            database.ChangeTracker.Entries<Thought>().Single(entry => entry.Entity.Id == change.Value.Id).Entity.ToContract()).ToList()),
+            request.Epoch, changedVersions);
+        if (operationId is { } receiptId)
+            database.OperationReceipts.Add(new()
+            {
+                UserId = userId,
+                Id = receiptId,
+                RequestHash = requestHash,
+                ResponseJson = JsonSerializer.Serialize(result, JsonSerializerOptions.Web)
+            });
+        if (request.CommitDumpId is { } committedId)
+        {
+            var dump = database.BrainDumps.Local.Single(row => row.UserId == userId && row.Id == committedId);
+            if (dump.WasAiProcessed)
+            {
+                var account = await database.RelationalAccounts.SingleAsync(row => row.UserId == userId, cancellationToken);
+                if (access.Value.PaywallEnabled && account.LicenseHash is null && account.SuccessfulAiDumps >= AccessOptions.FreeDumpLimit)
+                    throw new TrialLimitException();
+                account.SuccessfulAiDumps++;
+            }
+        }
         await database.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
-        return new(null, request.Epoch, changedVersions);
+        return result;
     }
 
     private async Task RequireEpochAsync(string userId, Guid epoch, CancellationToken cancellationToken)
@@ -141,6 +185,8 @@ public sealed partial class RelationalDataStore(NagapieDbContext database, Legac
         await importer.EnsureImportedAsync(userId, cancellationToken);
         await using var transaction = await RelationalTransactions.BeginWriteAsync(database, userId, cancellationToken);
         var row = await database.Drafts.SingleAsync(row => row.UserId == userId, cancellationToken);
+        if (request is null && row.IsDeleted)
+            return row.Version;
         if (row.Version != version)
             return null;
         if (request is null)

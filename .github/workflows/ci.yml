@@ -5,6 +5,19 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_SA_PASSWORD: CI-disposable-Sql-9271!
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'CI-disposable-Sql-9271!' -C -Q 'SELECT 1'"
+          --health-interval 10s --health-timeout 5s --health-retries 12
+    env:
+      NAGAPIE_TEST_SQL: 'Server=localhost,1433;User ID=sa;Password=CI-disposable-Sql-9271!;Encrypt=True;TrustServerCertificate=True'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4

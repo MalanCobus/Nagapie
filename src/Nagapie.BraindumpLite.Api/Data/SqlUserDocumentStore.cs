@@ -11,6 +11,14 @@ public sealed class SqlUserDocumentStore(NagapieDbContext database, IRelationalD
     {
         if (key is "items" or "categories" or "draft")
             return await relational.ReadAsync(userId, key, cancellationToken);
+        if (key == "access")
+        {
+            var entitled = await database.RelationalAccounts.AnyAsync(row => row.UserId == userId && row.LicenseHash != null, cancellationToken);
+            return new(JsonSerializer.SerializeToElement(new Nagapie.BraindumpLite.Contracts.Domain.AccessState
+            {
+                UnlockToken = entitled ? "account-entitlement" : null
+            }, JsonSerializerOptions.Web), Guid.Empty);
+        }
         var document = await database.UserDocuments.AsNoTracking()
             .SingleOrDefaultAsync(row => row.UserId == userId && row.Key == key, cancellationToken);
         return new(document?.Json is { } json ? JsonSerializer.Deserialize<JsonElement>(json) : null, document?.Version ?? Guid.Empty);
@@ -20,6 +28,8 @@ public sealed class SqlUserDocumentStore(NagapieDbContext database, IRelationalD
     {
         if (key is "items" or "categories")
             return null; // Old clients must reload; whole-list replacement is no longer supported.
+        if (key == "access")
+            return Guid.Empty; // Presentation is derived from the server entitlement.
         if (key == "draft")
             return await relational.SaveDraftAsync(userId,
             data is { } value ? new(value, version) : null, version, cancellationToken);

@@ -31,7 +31,7 @@
     <div><span class="tiny-spark">✧</span><span>@L["Dump_Example"]</span></div><button class="text-button" disabled="@(Busy || State.Draft.Text.Length > 0)" @onclick="ExampleAsync">@L["Dump_UseExample"] <span aria-hidden="true">↗</span></button>
 </div>
 <div class="thought-prompts"><span><span class="prompt-dot sage"></span>@L["Dump_Prompt1"]</span><span><span class="prompt-dot yellow"></span>@L["Dump_Prompt2"]</span><span><span class="prompt-dot terra"></span>@L["Dump_Prompt3"]</span></div>
-@if (State.Config.PaywallEnabled && State.Access.UnlockToken is null) { <p class="quiet-note">@State.Store.AiDumps.Count @L["Access_Count"]</p> }
+@if (State.Config.PaywallEnabled && State.Access.UnlockToken is null) { <p class="quiet-note">@State.SuccessfulAiDumps @L["Access_Count"]</p> }
 @if (consent) {
     <Modal Title="@L["Consent_Title"]" Closed="() => consent = false"><p>@L["Consent_Text", State.Config.ProviderName]</p><p><a href="@State.Config.ProviderPrivacyUrl" target="_blank" rel="noopener noreferrer">@L["Consent_Provider"]</a> · <a href="/privacy">@L["Nav_Privacy"]</a></p><div class="modal-actions"><button class="button secondary" autofocus @onclick="WithoutAiAsync">@L["Consent_Without"]</button><button class="button primary" @onclick="ConsentAsync">@L["Consent_Agree"]</button></div></Modal>
 }

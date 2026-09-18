@@ -9,6 +9,14 @@ namespace Nagapie.BraindumpLite.Tests;
 
 public class DatabaseStartupTests
 {
+    [Fact]
+    public void ProductionNeverRunsMigrationsEvenWhenOldSettingIsEnabled()
+    {
+        var migrator = new RecordingMigrator { Fail = true };
+        using var factory = Factory(migrator, true, "Production");
+        using var client = factory.CreateClient();
+        Assert.Equal(0, migrator.Calls);
+    }
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
@@ -29,12 +37,17 @@ public class DatabaseStartupTests
         Assert.Equal(1, migrator.Calls);
     }
 
-    private static WebApplicationFactory<Program> Factory(RecordingMigrator migrator, bool enabled) =>
+    private static WebApplicationFactory<Program> Factory(RecordingMigrator migrator, bool enabled, string environment = "Development") =>
         new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
-            builder.UseEnvironment("Development");
+            builder.UseEnvironment(environment);
+            builder.UseSetting("ConnectionStrings:Nagapie", "Server=unused;Database=unused;Integrated Security=True");
             builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(
-                new Dictionary<string, string?> { ["Database:ApplyMigrationsOnStartup"] = enabled.ToString() }));
+                new Dictionary<string, string?>
+                {
+                    ["Database:ApplyMigrationsOnStartup"] = enabled.ToString(),
+                    ["ConnectionStrings:Nagapie"] = "Server=unused;Database=unused;Integrated Security=True"
+                }));
             builder.ConfigureServices(services =>
             {
                 AccountTestSupport.UseTestDatabase(services);

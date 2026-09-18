@@ -14,6 +14,8 @@ public static class ServiceRegistration
         builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 4 * 1024 * 1024);
         // Payhip includes the license in its query. Disable outgoing HTTP logging entirely.
         builder.Logging.AddFilter("System.Net.Http.HttpClient", LogLevel.None);
+        // Raw EF exceptions may include constraint values; middleware/migrator emit safe details.
+        builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.None);
         builder.Services.AddHttpClient<IAiBrainDumpProcessor, AiProcessor>(c => c.MaxResponseContentBufferSize = 262144);
         builder.Services.AddHttpClient<ILicenseVerifier, PayhipLicenseVerifier>(c =>
         {

@@ -25,6 +25,7 @@ public static class AccountRegistration
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
             options.User.RequireUniqueEmail = true;
+            options.SignIn.RequireConfirmedEmail = false;
             options.Password.RequiredLength = 12;
             options.Password.RequireDigit = false;
             options.Password.RequireLowercase = false;

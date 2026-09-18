@@ -13,6 +13,8 @@ public static class UserDataEndpoints
         var group = endpoints.MapGroup("/api/data").RequireAuthorization()
             .AddEndpointFilter<AccountRequestFilter>();
         group.MapGet("/{key}", ReadAsync);
+        group.MapGet("/thoughts", async ([AsParameters] ThoughtQuery query, IRelationalDataStore store, HttpContext context) =>
+            Results.Ok(await store.QueryThoughtsAsync(UserId(context), query, context.RequestAborted)));
         group.MapPut("/{key}", SaveAsync);
         group.MapDelete("/{key}", DeleteAsync);
         group.MapPost("/items/changes", async (SaveThoughtsRequest request, IRelationalDataStore store, HttpContext context) =>

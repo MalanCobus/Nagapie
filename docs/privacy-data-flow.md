@@ -6,13 +6,13 @@
 | Accounts | ASP.NET Identity | Email, password hash, lockout/security metadata in SQL |
 | Audio | Browser speech-recognition provider when explicitly enabled | Nagapie never stores audio |
 | AI requests | Own API and configured external provider | Drafts and saved content are in SQL; no request/response body logging |
-| License | Own API and Payhip over HTTPS | Signed unlock token saved in the account's SQL document |
+| License | Own API and Payhip over HTTPS | License hash bound to one account in SQL; server-side usage survives content reset |
 | Request metadata | ASP.NET Core / hosting layer | Hosting/log policy must be finalized |
 | Calendar export | Browser | User downloads .ics |
 | Support | User's mail client | Recipient mail provider, when user sends it |
 
 Do not enable ASP.NET HTTP body logging, provider SDK verbose logging, analytics capturing form content, or proxy query logging for outgoing license requests. Outgoing HttpClient logs are disabled.
 
-The relational upgrade retains previous JSON documents as a recovery archive until a later reviewed cleanup. Individual edits/deletions do not rewrite this archive. Delete-all removes its content alongside current user data. Account deletion (when implemented) must include both current content and the archive.
+The relational upgrade retains previous JSON documents as a recovery archive until a later reviewed cleanup. Individual edits/deletions do not rewrite this archive. Operation receipts can also retain earlier thought text for reliable retries. Delete-all removes the archive, receipts and current content; account usage and entitlements remain. Account deletion (when implemented) must include both current content and the archive.
 
 Provider retention, processing location, training policy, operator business details, and log retention are not invented. Complete these before public launch and update the visible privacy text and consent flow accordingly.

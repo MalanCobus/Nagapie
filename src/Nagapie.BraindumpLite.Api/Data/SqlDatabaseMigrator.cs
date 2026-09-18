@@ -15,9 +15,10 @@ public sealed class SqlDatabaseMigrator(NagapieDbContext database, LegacyDataImp
             await importer.ImportAllAsync(cancellationToken);
             logger.LogInformation("Database migrations complete.");
         }
-        catch (Exception)
+        catch (Exception exception)
         {
-            logger.LogCritical("Database migration failed. Startup stopped. Check SQL connectivity and schema-change permissions.");
+            SafeExceptionLog.Write(logger, exception, "database-upgrade");
+            logger.LogCritical("Database upgrade failed. Do not promote this deployment. Original legacy documents are retained.");
             throw;
         }
     }

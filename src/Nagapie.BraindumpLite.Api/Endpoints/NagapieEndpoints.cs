@@ -1,5 +1,10 @@
 using Microsoft.Extensions.Options;
 using Nagapie.BraindumpLite.Contracts;
+using Nagapie.BraindumpLite.Api.Data;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace Nagapie.BraindumpLite.Api;
 
@@ -22,22 +27,37 @@ public static class NagapieEndpoints
         return new PublicConfiguration(access.Value.PaywallEnabled, AccessOptions.FreeDumpLimit, AccessOptions.PriceDisplay, payhip.Value.ProductUrl, ai.Value.IsConfigured, ai.Value.DisplayName, ai.Value.PrivacyUrl);
     }
 
-    private static async Task<IResult> ProcessDumpAsync(ProcessDumpRequest request, IAiBrainDumpProcessor ai, IUnlockTokenService tokens, IOptions<AccessOptions> access, HttpContext context)
+    private static async Task<IResult> ProcessDumpAsync(ProcessDumpRequest request, IAiBrainDumpProcessor ai,
+        NagapieDbContext database, LegacyDataImporter importer, IOptions<AccessOptions> access, HttpContext context)
     {
         if (!DumpValidation.IsValid(request))
         {
             return Results.BadRequest(new ApiError(ErrorCodes.InvalidInput, context.TraceIdentifier));
         }
 
-        // Accountless trial counts come from local storage and are deliberately a soft limit.
-        if (access.Value.PaywallEnabled && request.SuccessfulDumpCount >= AccessOptions.FreeDumpLimit && !tokens.Verify(request.UnlockToken))
+        var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        await importer.EnsureImportedAsync(userId, context.RequestAborted);
+        var account = await database.RelationalAccounts.AsNoTracking().SingleAsync(row => row.UserId == userId, context.RequestAborted);
+        if (access.Value.PaywallEnabled && account.SuccessfulAiDumps >= AccessOptions.FreeDumpLimit && account.LicenseHash is null)
         {
             return Failure(ErrorCodes.PaywallRequired, StatusCodes.Status402PaymentRequired, context);
         }
 
         try
         {
-            return Results.Ok(await ai.ProcessAsync(request, context.RequestAborted));
+            var result = await ai.ProcessAsync(request, context.RequestAborted);
+            await using var transaction = await RelationalTransactions.BeginWriteAsync(database, userId, context.RequestAborted);
+            if (!await database.ProcessedDumps.AnyAsync(row => row.UserId == userId && row.Id == request.SourceDumpId, context.RequestAborted))
+            {
+                database.ProcessedDumps.Add(new()
+                {
+                    UserId = userId,
+                    Id = request.SourceDumpId
+                });
+                await database.SaveChangesAsync(context.RequestAborted);
+            }
+            await transaction.CommitAsync(context.RequestAborted);
+            return Results.Ok(result);
         }
         catch (AiFailure error)
         {
@@ -45,7 +65,8 @@ public static class NagapieEndpoints
         }
     }
 
-    private static async Task<IResult> VerifyLicenseAsync(VerifyLicenseRequest request, ILicenseVerifier verifier, HttpContext context)
+    private static async Task<IResult> VerifyLicenseAsync(VerifyLicenseRequest request, ILicenseVerifier verifier,
+        NagapieDbContext database, LegacyDataImporter importer, HttpContext context)
     {
         if (string.IsNullOrWhiteSpace(request.LicenseKey) || request.LicenseKey.Length > 100)
         {
@@ -54,7 +75,20 @@ public static class NagapieEndpoints
 
         try
         {
-            return Results.Ok(await verifier.VerifyAsync(request.LicenseKey, context.RequestAborted));
+            var verified = await verifier.VerifyAsync(request.LicenseKey, context.RequestAborted);
+            if (!verified.IsValid)
+                return Results.Ok(verified);
+            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            await importer.EnsureImportedAsync(userId, context.RequestAborted);
+            await using var transaction = await RelationalTransactions.BeginWriteAsync(database, userId, context.RequestAborted);
+            var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(request.LicenseKey.Trim())));
+            if (await database.RelationalAccounts.AnyAsync(row => row.UserId != userId && row.LicenseHash == hash, context.RequestAborted))
+                return Results.BadRequest(new ApiError(ErrorCodes.LicenseInvalid, context.TraceIdentifier));
+            (await database.RelationalAccounts.SingleAsync(row => row.UserId == userId, context.RequestAborted)).LicenseHash = hash;
+            await database.SaveChangesAsync(context.RequestAborted);
+            await transaction.CommitAsync(context.RequestAborted);
+            // The browser marker controls presentation only; authorization uses the account record.
+            return Results.Ok(new VerifyLicenseResponse(true, "account-entitlement"));
         }
         catch (LicenseUnavailableException)
         {

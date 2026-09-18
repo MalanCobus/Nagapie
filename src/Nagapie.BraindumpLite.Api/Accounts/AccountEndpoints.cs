@@ -72,4 +72,3 @@ public static class AccountEndpoints
     private static IResult Failure(string code, HttpContext context) =>
         Results.BadRequest(new ApiError(code, context.TraceIdentifier));
 }
-

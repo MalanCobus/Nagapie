@@ -30,4 +30,3 @@ public sealed class AccountClient(HttpClient http, AccountContext context)
         context.Set(null);
     }
 }
-

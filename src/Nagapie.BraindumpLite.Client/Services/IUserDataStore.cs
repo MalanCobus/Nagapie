@@ -1,15 +1,23 @@
+using Nagapie.BraindumpLite.Contracts;
+using Nagapie.BraindumpLite.Contracts.Domain;
+
 namespace Nagapie.BraindumpLite.Client.Services;
 
 public interface IUserDataStore
 {
-    Task<T?> ReadAsync<T>(string key);
-    Task WriteAsync<T>(string key, T value);
-    Task RemoveAsync(string key);
-    async Task ClearAsync()
-    {
-        foreach (var key in new[] { "items", "categories", "draft", "settings", "access" })
-        {
-            await RemoveAsync(key);
-        }
-    }
+    Task<AppSettings> ReadSettingsAsync();
+    Task SaveSettingsAsync(AppSettings settings);
+    Task<AccessState> ReadAccessAsync();
+    Task SaveAccessAsync(AccessState access);
+    Task<Draft> ReadDraftAsync();
+    Task SaveDraftAsync(Draft draft);
+    Task DeleteDraftAsync();
+    Task<List<Category>> ReadCategoriesAsync();
+    Task SaveCategoryAsync(Category category);
+    Task DeleteCategoryAsync(Guid id);
+    Task<ThoughtPage> QueryThoughtsAsync(ThoughtQuery query);
+    Task<List<BrainDumpItem>> CommitDraftAsync(Draft draft);
+    Task<BrainDumpItem> UpdateThoughtAsync(BrainDumpItem item);
+    Task DeleteThoughtAsync(Guid id);
+    Task ClearAsync();
 }

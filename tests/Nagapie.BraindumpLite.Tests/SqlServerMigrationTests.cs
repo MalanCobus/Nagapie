@@ -11,6 +11,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Configuration;
 using Nagapie.BraindumpLite.Api;
 using Nagapie.BraindumpLite.Api.Data;
 using Nagapie.BraindumpLite.Contracts;
@@ -40,6 +41,13 @@ public class SqlServerMigrationTests
         {
             // Exercise the actual old schema -> latest schema path, never EnsureCreated.
             await database.GetService<IMigrator>().MigrateAsync("20260918135021_InitialAccountsAndUserData");
+            var preflight = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:Nagapie"] = builder.ConnectionString,
+                ["Database:ExpectedServer"] = builder.DataSource.Replace("tcp:", "", StringComparison.OrdinalIgnoreCase).Split(',')[0]
+            }).Build();
+            Assert.Equal(0, await DatabaseConnectionCheck.RunAsync(preflight, NullLogger.Instance, default));
+            Assert.NotEmpty(await database.Database.GetPendingMigrationsAsync());
             using var services = new ServiceCollection().AddSingleton(database).BuildServiceProvider();
             var readiness = new DatabaseReadiness(services.GetRequiredService<IServiceScopeFactory>(), NullLogger<DatabaseReadiness>.Instance);
             Assert.Equal(HealthStatus.Unhealthy, (await readiness.CheckHealthAsync(new())).Status);

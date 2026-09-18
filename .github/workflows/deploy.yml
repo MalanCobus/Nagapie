@@ -21,6 +21,9 @@ jobs:
     env:
       APP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
       RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      SQL_SERVER: nagapie-cobus-sql
+      SQL_RESOURCE_GROUP: nagapie-cobus
+      SQL_FIREWALL_RULE: nagapie-deploy-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -52,6 +55,20 @@ jobs:
           host=$(az webapp show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" --query defaultHostName -o tsv)
           test -n "$host"
           echo "APP_URL=https://$host" >> "$GITHUB_ENV"
+      - name: Allow this runner to reach SQL
+        id: sql_firewall
+        run: |
+          runner_ip=$(curl -4 --fail --silent --show-error --max-time 20 https://api.ipify.org)
+          python3 -c 'import ipaddress,sys; ip=ipaddress.IPv4Address(sys.argv[1]); assert ip.is_global' "$runner_ip"
+          az sql server firewall-rule create --resource-group "$SQL_RESOURCE_GROUP" \
+            --server "$SQL_SERVER" --name "$SQL_FIREWALL_RULE" \
+            --start-ip-address "$runner_ip" --end-ip-address "$runner_ip" --output none
+      - name: Check database access before pausing website
+        env:
+          DOTNET_ENVIRONMENT: Production
+          ConnectionStrings__Nagapie: ${{ secrets.NAGAPIE_MIGRATION_CONNECTION }}
+          Database__ExpectedServer: nagapie-cobus-sql.database.windows.net
+        run: dotnet artifacts/publish/Nagapie.BraindumpLite.Api.dll --check-database-connection
       # Old JSON writers must stop before import. Keep maintenance through release
       # so an incompatible old binary cannot resume writes after schema changes.
       - name: Pause website for database upgrade
@@ -62,6 +79,19 @@ jobs:
         env:
           DOTNET_ENVIRONMENT: Production
           ConnectionStrings__Nagapie: ${{ secrets.NAGAPIE_MIGRATION_CONNECTION }}
+      # Attempt cleanup even if creation timed out after Azure accepted the rule.
+      - name: Remove this runner's SQL firewall rule
+        if: ${{ always() && (steps.sql_firewall.outcome == 'success' || steps.sql_firewall.outcome == 'failure' || steps.sql_firewall.outcome == 'cancelled') }}
+        run: |
+          for attempt in 1 2 3; do
+            if az sql server firewall-rule delete --resource-group "$SQL_RESOURCE_GROUP" \
+              --server "$SQL_SERVER" --name "$SQL_FIREWALL_RULE" --output none; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::Could not remove temporary SQL firewall rule $SQL_FIREWALL_RULE. Remove it on the SQL server Networking page."
+          exit 1
       - name: Deploy the tested package
         uses: azure/webapps-deploy@v3
         with:

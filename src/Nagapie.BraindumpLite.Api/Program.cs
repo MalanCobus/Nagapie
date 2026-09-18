@@ -7,6 +7,13 @@ builder.AddNagapieServices();
 builder.AddSqlAccounts();
 builder.Services.AddHealthChecks().AddCheck<DatabaseReadiness>("database");
 var app = builder.Build();
+if (args.Contains("--check-database-connection"))
+{
+    Environment.ExitCode = await DatabaseConnectionCheck.RunAsync(builder.Configuration,
+        app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("DatabaseConnectionCheck"),
+        app.Lifetime.ApplicationStopping);
+    return;
+}
 var migrateOnly = args.Contains("--migrate");
 if (migrateOnly || (app.Environment.IsDevelopment() && builder.Configuration.GetValue("Database:ApplyMigrationsOnStartup", false)))
 {

@@ -23,9 +23,21 @@ An Azure/GitHub administrator must configure the following once. These are hosti
 - Variable `AZURE_RESOURCE_GROUP`: `nagapie-cobus` for the current site.
 - Variables `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`: the federated deployment identity and target subscription identifiers.
 
-4. Configure the website's runtime SQL connection as described below. Confirm both connections point to the **same server and database**, with different identities. Configure approved runner-to-SQL network access; for a private database, change the deployment job's `runs-on` to an organization-managed runner inside that network. Do not open SQL publicly to make a deployment pass.
+4. Configure the website's runtime SQL connection as described below. Confirm both connections point to the **same server and database**, with different identities. The current server is `nagapie-cobus-sql.database.windows.net` in `nagapie-cobus`, with public access restricted to selected networks. Keep that setting. The workflow uses the existing GitHub-hosted runner and temporarily allows only its IPv4 address. No local runner or VM is needed. Grant the deployment identity the firewall permission below once.
 5. Confirm Azure SQL point-in-time recovery/retention and a tested restore procedure. Persist App Service authentication keys across releases.
 6. Remove legacy deployment routes: disable App Service SCM/FTP basic publishing authentication, revoke old publishing credentials, remove the obsolete `AZURE_WEBAPP_PUBLISH_PROFILE` secret, and limit Azure deployment rights to the pipeline and audited emergency operators. The project guard prevents accidental publishing; Azure permissions enforce it against bypasses. Disable any other deployment workflow or Deployment Center integration that publishes without this upgrade gate.
+
+### One-time SQL firewall permission
+
+Open Azure Portal's **Cloud Shell**, select **Bash**, and select the subscription containing `nagapie-cobus`. Upload `scripts/grant-deployment-firewall-access.sh` using Cloud Shell's upload button, then run:
+
+```bash
+bash grant-deployment-firewall-access.sh
+```
+
+Enter the **Application (client) ID** of `Nagapie-GitHub-Deploy` when prompted (this ID is not a password). An Azure administrator with permission to create custom roles and role assignments must run this. The script creates a role allowing SQL server reads and firewall-rule read/write/delete, assigned only on `nagapie-cobus-sql`. This role can manage all firewall rules on that server; the workflow only touches its uniquely named rule. It does not grant access to database contents or permission to delete the server. The existing Website Contributor assignment is still required.
+
+Each release creates `nagapie-deploy-<run ID>-<attempt>` for one IP, verifies the migration connection points at the expected server, and waits for firewall propagation before pausing the app. It attempts to delete that rule immediately after migration, including failures and normal cancellations. If Azure cleanup fails or the runner is forcibly terminated, remove that exact rule from the SQL server's **Networking** page. Existing firewall rules are preserved. The site also needs its own existing database network access; this temporary rule only covers the deployment runner.
 
 ### Each release
 

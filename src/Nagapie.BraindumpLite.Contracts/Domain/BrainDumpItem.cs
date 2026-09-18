@@ -13,6 +13,10 @@ public sealed record BrainDumpItem
         get; set;
     }
     public string PlanningHorizon { get; set; } = "later";
+    public DateOnly? PlannedDate
+    {
+        get; set;
+    }
     public string InputMethod { get; set; } = "text";
     public string? CompletionReason
     {

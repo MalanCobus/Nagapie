@@ -1,6 +1,6 @@
 @page "/list"
 @inherits PageBase
-<PageTitle>Nagapie — @L["Nav_List"]</PageTitle>
+<PageTitle>Braindump — @L["Nav_List"]</PageTitle>
 <StepIndicator Active="2"/>
 <section class="page-heading list-heading"><div><h1>@L["List_Title"]</h1><p class="lead">@L["List_Subtitle"]</p></div><a class="button secondary" href="/"><Icon Name="plus"/>@L["List_New"]</a></section>
 <div class="list-toolbar"><label class="sr-only" for="category-filter">@L["Category_Label"]</label><select id="category-filter" @bind="filter"><option value="">@L["Category_All"]</option><option value="unsorted">@L["Category_None"]</option>@foreach(var c in State.Categories) { <option value="@c.Id">@CategoryName(c)</option> }</select><span class="quiet-note"><Icon Name="lock" Size="14"/>@L["Dump_Local"]</span></div>
@@ -8,8 +8,8 @@
 @if (State.Store.Items.Count == 0) { <section class="empty-state"><Botanical/><h2>@L["List_EmptyAll"]</h2><p>@L["List_EmptyDetail"]</p><a class="button primary" href="/">@L["List_New"]<Icon Name="arrow"/></a></section> }
 else {
  @foreach (var horizon in AppState.Horizons) {
-    var items = Filtered.Where(i => !i.IsCompleted && i.PlanningHorizon == horizon).OrderByDescending(i => i.CreatedAtUtc).ToList();
-    <section class="horizon-section"><div class="horizon-heading"><div class="horizon-title"><Icon Name="@(horizon == "today" ? "sun" : horizon == "next-week" ? "calendar" : "leaf")"/><h2>@L["Horizon_" + horizon]</h2><span class="count">@items.Count</span></div><p>@L[horizon == "today" ? "Horizon_TodayHint" : horizon == "next-week" ? "Horizon_WeekHint" : "Horizon_LaterHint"]</p></div>
+    var items = Filtered.Where(i => !i.IsCompleted && i.PlanningHorizon == horizon).OrderBy(i => i.PlannedDate).ThenByDescending(i => i.CreatedAtUtc).ToList();
+    <section class="horizon-section"><div class="horizon-heading"><div class="horizon-title"><Icon Name="@(horizon == "today" ? "sun" : horizon is "tomorrow" or "date" ? "calendar" : "leaf")"/><h2>@L["Horizon_" + horizon]</h2><span class="count">@items.Count</span></div><p>@L["Horizon_Hint_" + horizon]</p></div>
     @if (items.Count == 0) { <div class="empty-bucket">@L["List_Empty"]</div> }
     @foreach (var item in items) { @ItemCard(item) }
     </section>
@@ -24,7 +24,7 @@ else {
  RenderFragment ItemCard(BrainDumpItem item) => @<article class="thought-card @(item.IsCompleted ? "completed" : "")">
     @if (!item.IsCompleted) { <button class="complete-button" disabled="@Busy" aria-label="@L["List_Complete"]" @onclick='() => ArchiveAsync(item, "completed")'><Icon Name="check" Size="17"/></button> }
     else { <span class="archive-icon"><Icon Name="@(item.CompletionReason == "let-go" ? "leaf" : "check")"/></span> }
-    <div class="thought-content"><p>@item.Text</p><span class="category-tag @(State.Categories.FirstOrDefault(c => c.Id == item.CategoryId)?.ColorToken ?? "stone")">@CategoryName(item.CategoryId)</span>@if (item.IsCompleted) { <span class="completion-label">@L[item.CompletionReason == "let-go" ? "List_Released" : "List_Done"]</span> }</div>
+    <div class="thought-content"><p>@item.Text</p><span class="category-tag @(State.Categories.FirstOrDefault(c => c.Id == item.CategoryId)?.ColorToken ?? "stone")">@CategoryName(item.CategoryId)</span>@if (item.PlannedDate is { } plannedDate) { <span class="completion-label"><Icon Name="calendar" Size="14" /> @plannedDate.ToString("d")</span> }@if (item.IsCompleted) { <span class="completion-label">@L[item.CompletionReason == "let-go" ? "List_Released" : "List_Done"]</span> }</div>
     <div class="thought-actions">
     @if (item.IsCompleted) { <button class="text-button" disabled="@Busy" @onclick="() => RestoreAsync(item)">@L["List_Restore"]</button> }
     else { <button class="icon-button" title="@L["List_Edit"]" aria-label="@L["List_Edit"]" @onclick="() => editing = item with { }"><Icon Name="edit" Size="17"/></button><button class="icon-button" title="@L["Calendar_Export"]" aria-label="@L["Calendar_Export"]" @onclick="() => calendar = item"><Icon Name="calendar" Size="17"/></button><button class="icon-button" title="@L["List_LetGo"]" aria-label="@L["List_LetGo"]" disabled="@Busy" @onclick='() => ArchiveAsync(item, "let-go")'><Icon Name="leaf" Size="17"/></button> }

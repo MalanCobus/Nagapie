@@ -31,7 +31,7 @@ internal static class AiRequestContent
                         "type": "string",
                         "enum": [
                           "today",
-                          "next-week",
+                          "tomorrow",
                           "later"
                         ]
                       }

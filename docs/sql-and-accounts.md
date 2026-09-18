@@ -4,13 +4,31 @@ Nagapie now requires an account. Registration, login and logout are included. Al
 
 ## What is saved
 
+The app is named **Braindump**, under the Nagapie umbrella. Planning choices are Today, Tomorrow, Later, and a chosen calendar date. `Thoughts.PlannedDate` is a nullable SQL `date`, so a selected day does not shift with time zones. Startup moves previous `next-week` items and draft suggestions to `later`. Temporary review suggestions retain their dates in draft JSON. Today/Tomorrow remain explicit planning buckets, not automatic reminders or rolling dates.
+
 - Identity tables: email, password hash, account security and lockout information. Passwords are never stored as plain text.
-- `UserDocuments`: one versioned SQL row per user and data section (settings, draft/review, items/todos with commit receipts, categories, access). The section is serialized JSON in a SQL column, not a file or browser record. This preserves atomic updates to the existing item-list model. Individual todos are not separate relational rows in this version.
-- `BrainDumps`: original text and metadata for each committed braindump, with its owning user. The history page lists these originals.
+- `Thoughts`: one row per thought/todo, with typed text, category, planning horizon, completion, timestamps, source dump, and concurrency version.
+- `Categories`: one row per user-owned category. Composite foreign keys prevent thoughts linking to another user's category or dump.
+- `Drafts`: one current draft per user with typed text, ID, input method and AI status. Temporary review suggestions remain JSON until committed.
+- `BrainDumps`: original text, metadata and commit/AI receipts. Original history is sorted and paginated in SQL, 50 records per page.
+- `UserDocuments`: JSON remains for small preferences and access settings. Old items/categories/draft documents are retained only as an upgrade recovery archive and are no longer read or written by the app after import.
+- `RelationalAccounts`: records completed imports and a reset token that prevents stale clients restoring cleared data.
 
 Every query takes its owner from the authenticated server identity. The browser cannot choose another owner. Mutations require an antiforgery token. An account header must match the authenticated identity, so a tab opened under a different account cannot silently read or save under the newly signed-in account.
 
-Version tokens reject stale writes with a conflict message. Reload to see another device's changes; there is no live collaboration or offline save queue. Delete-all clears only the signed-in user's data, including original dumps, while keeping the account. Versioned tombstones prevent stale edits from resurrecting deleted sections.
+Each thought/category has its own version. The client sends only changed/deleted rows: two devices editing different thoughts do not conflict simply because they loaded the same list. Same-row stale writes are rejected. SQL transactions coordinate writes for each user; category deletion clears thought and draft references atomically. Reload to see another device's changes; there is no live collaboration or offline queue. The current list screen still loads all of a user's thoughts (up to the existing 5,000-item limit); the relational schema now supports future filtered/paginated list endpoints.
+
+Delete-all clears only the signed-in user's content, including original dumps and the legacy JSON archive, while keeping the account. Reset/version tokens prevent stale edits from restoring that content.
+
+## Publishing the relational upgrade
+
+1. Confirm a usable Azure SQL restore point/backup before upgrading. Stop Nagapie in Azure App Service so the old application cannot write JSON during the import. Stop any other instance connected to this database too.
+2. Publish the API from Visual Studio, then start the App Service. Keep the existing SQL connection and `nagapie_app` permissions; no new SQL script is needed.
+3. Startup applies the additive `RelationalUserData` schema migration, then imports each existing account in a transaction before accepting traffic. Originals, IDs, timestamps, completion state and receipts are retained. Import markers make a restart safe. Invalid data stops startup and leaves that account's originals untouched; do not bypass the failure by deleting data.
+4. Close existing Nagapie browser tabs and reopen the website so the PWA loads the new client. Old whole-list write requests are rejected rather than silently replacing relational rows.
+5. Check a previous account's items, categories, draft and dump history; save a change and sign in again.
+
+Some early versions did not keep original dump text. Those source IDs become explicitly marked placeholder dump rows; no original text is invented, and placeholders are excluded from original history. The archive is a recovery copy, not a live backup: new relational changes are not written back into it. Do not roll back to the JSON-based app or run the migration's `Down` method after users start editing. Plan removal of the archive in a later reviewed migration after confirming the conversion. Individual item deletion does not rewrite the historical archive; delete-all clears it.
 
 The browser still uses session/security cookies and may cache public app files. Neither contains saved thoughts. Unsaved text exists only in the current page's memory and is lost if the page closes before a successful save.
 
@@ -18,7 +36,7 @@ The browser still uses session/security cookies and may cache public app files. 
 
 The local `Nagapie` database has been created on this machine using SQL Server LocalDB. Set the API as the startup project and run the normal `http` or `https` profile. Open the website and create your own account.
 
-On a new development machine, install SQL Server Express LocalDB through Visual Studio Installer (Data storage and processing), then run this once from the solution folder in Visual Studio's terminal:
+On a new development machine, install SQL Server Express LocalDB through Visual Studio Installer (Data storage and processing), then start the API. It creates the local database and applies pending migrations automatically. To apply migrations without starting the website, you can still run this from the solution folder:
 
 ```powershell
 dotnet run --project src/Nagapie.BraindumpLite.Api -- --migrate
@@ -35,8 +53,8 @@ Your existing hosted version is unchanged. Do these steps before publishing the 
 3. Create or select an Azure SQL logical server in the same region as the app. For a straightforward initial setup, configure SQL authentication and keep its administrator credentials private.
 4. Check the **free database offer** if your subscription offers it. Choose **Auto-pause the database until next month** when the free amount is exhausted if you want to avoid paid overage. If no free offer is shown, review the price before creating anything. App Service F1 does not include SQL hosting automatically. See [Microsoft's free-offer instructions](https://learn.microsoft.com/en-us/azure/azure-sql/database/free-offer?view=azuresql).
 5. Configure the SQL server's network firewall to allow your app's outbound IP addresses (shown in App Service **Properties**) and your development computer's IP while applying the schema. Do not allow every public IP. The browser never connects directly to SQL.
-6. In Visual Studio **SQL Server Object Explorer**, add the Azure SQL server, connect to the `Nagapie` database, open a new query, and run `docs/sql-schema.sql`. This generated script creates the Identity and application tables and can be rerun because it checks migration history. Use schema-deployment credentials for this step.
-7. Set up a dedicated database user for the app with read/write permissions on these tables, rather than leaving the app running as the server administrator. The application does not run migrations at normal startup.
+6. In Visual Studio **SQL Server Object Explorer**, add the Azure SQL server and connect to the `Nagapie` database as its administrator. There is no need to run `docs/sql-schema.sql`; startup migrations create and update the tables.
+7. Set up a dedicated database user for the app with read/write and schema-change permissions as described below. Existing installations using `nagapie_app` need the one-time additional permission before publishing this version.
 8. In your Azure App Service, open **Settings → Environment variables → App settings**. Add `ConnectionStrings__Nagapie` (two underscores) using the ADO.NET connection string for that database and application user. Keep `Encrypt=True` and `TrustServerCertificate=False` for Azure SQL.
 9. Save the settings, then publish the **API** project from Visual Studio using the existing profile.
 10. Open the website, register, save a test thought, sign out, and sign back in. Register another test user and confirm their list starts empty.
@@ -51,9 +69,17 @@ Azure SQL is a separate resource. No Azure database or paid plan was provisioned
 
 ## Schema updates and deployment
 
-EF Core migrations are under `src/Nagapie.BraindumpLite.Api/Data/Migrations`. Apply migrations deliberately before starting a version that needs them; do not run multiple web instances racing to change the schema. Back up the database before future migrations. `docs/sql-schema.sql` is generated from the initial migration.
+EF Core migrations are under `src/Nagapie.BraindumpLite.Api/Data/Migrations`. Startup automatically applies pending migrations before serving requests. EF Core's database migration lock coordinates concurrent migration runners; migration history prevents reapplying completed migrations. If migration fails, startup fails rather than serving an incompatible schema. This does not coordinate old app instances still serving traffic: use backward-compatible migrations or stop the app during breaking schema changes. Review migrations and back up data before changes that remove or transform stored data. Developers still need to generate and include migration files when the model changes; startup does not invent migrations.
 
-The API supports `--migrate` as a setup-only mode and exits afterward. On a deployment machine, it uses the configured connection string and therefore needs schema-change permissions. The normal web process only needs read/write access.
+For an existing `nagapie_app` account with `db_datareader` and `db_datawriter`, run this **once**, as administrator, in the Azure `Nagapie` database:
+
+```sql
+ALTER ROLE db_ddladmin ADD MEMBER [nagapie_app];
+```
+
+This allows the app to change database schema. It is broader access than read/write and is the tradeoff for startup migrations. Keep the dedicated account scoped to this database; do not use the server administrator connection in the app. The existing migrations only need ordinary table/index schema changes plus their existing read/write permissions. Reassess permissions if future migrations manage users or other privileged objects.
+
+`Database:ApplyMigrationsOnStartup` defaults to `true`. In Azure, set `Database__ApplyMigrationsOnStartup=false` to disable automatic migration if moving to a separate deployment migrator later. The API still supports `--migrate` as a setup-only mode that always applies migrations and exits. `docs/sql-schema.sql` remains an optional script for the initial schema; it is not the automatic update mechanism. Azure SQL database provisioning, firewall rules, and credentials remain one-time setup tasks.
 
 Azure App Service on Windows normally persists ASP.NET Data Protection keys in its HOME folder. Preserve those keys across restarts and instances so authentication cookies stay valid. See [Microsoft's key-storage guidance](https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/configuration/default-settings?view=aspnetcore-10.0).
 
@@ -63,4 +89,4 @@ Registration accepts an email and a 12–128 character password. Five failed pas
 
 Email verification, forgotten-password email delivery, account deletion and MFA are not implemented in this iteration. Configure an email provider and add verification/recovery before a wider public account launch. The existing optional trial counter remains a soft application limit; this change does not turn licensing into a fraud-resistant billing system.
 
-Automated integration tests use a relational SQLite database to exercise registration, cookies, CSRF, ownership, lockout, persistence and concurrency. The migration was also applied to actual SQL Server LocalDB, and the browser save/reload flow was exercised against it.
+Automated integration tests use SQLite for registration, cookies, CSRF, ownership, row concurrency, category deletion, draft conflicts, legacy import/rollback and history paging. The relational upgrade has also been exercised against a disposable SQL Server LocalDB database seeded with the previous schema and saved data, under the app's read/write plus DDL roles.

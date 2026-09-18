@@ -4,7 +4,7 @@ A quiet, bilingual place to capture thoughts, review AI suggestions, and decide 
 
 ## Run locally
 
-Requires the .NET 10 SDK and SQL Server Express LocalDB. See [SQL and account setup](docs/sql-and-accounts.md), including the Azure steps. The database has already been initialized on this development machine. On another machine, run `dotnet run --project src/Nagapie.BraindumpLite.Api -- --migrate` once before starting the app.
+Requires the .NET 10 SDK and SQL Server Express LocalDB. See [SQL and account setup](docs/sql-and-accounts.md), including the Azure steps. Pending database migrations run automatically before the app starts serving requests.
 
 ```powershell
 dotnet run --project src/Nagapie.BraindumpLite.Api --launch-profile http

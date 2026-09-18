@@ -37,7 +37,7 @@
 <data name="Step_Dump" xml:space="preserve"><value>Dump it</value></data>
 <data name="Step_Sort" xml:space="preserve"><value>Sort it</value></data>
 <data name="Step_Clear" xml:space="preserve"><value>Clear it</value></data>
-<data name="Welcome_Eyebrow" xml:space="preserve"><value>WELKOM BIJ NAGAPIE</value></data>
+<data name="Welcome_Eyebrow" xml:space="preserve"><value>WELKOM BIJ BRAINDUMP</value></data>
 <data name="Welcome_Title" xml:space="preserve"><value>Je hoofd mag even ademhalen.</value></data>
 <data name="Welcome_Text" xml:space="preserve"><value>Een rustige plek voor alles wat je bezighoudt. Schrijf het op, schep wat orde en maak ruimte voor wat telt.</value></data>
 <data name="Welcome_Dump" xml:space="preserve"><value>Haal het uit je hoofd.</value></data>
@@ -74,12 +74,8 @@
 <data name="Category_terra" xml:space="preserve"><value>Terracotta</value></data>
 <data name="Category_stone" xml:space="preserve"><value>Steen</value></data>
 <data name="Horizon_today" xml:space="preserve"><value>Vandaag</value></data>
-<data name="Horizon_next-week" xml:space="preserve"><value>Volgende week</value></data>
 <data name="Horizon_later" xml:space="preserve"><value>Later</value></data>
 <data name="Horizon_Label" xml:space="preserve"><value>Wanneer</value></data>
-<data name="Horizon_TodayHint" xml:space="preserve"><value>Wat nu je aandacht mag krijgen.</value></data>
-<data name="Horizon_WeekHint" xml:space="preserve"><value>Een plekje voor de komende dagen.</value></data>
-<data name="Horizon_LaterHint" xml:space="preserve"><value>Hier bewaard, tot jij eraan toe bent.</value></data>
 <data name="List_Title" xml:space="preserve"><value>Een beetje meer rust.</value></data>
 <data name="List_Subtitle" xml:space="preserve"><value>Alles heeft een plek. Eén gedachte tegelijk is genoeg.</value></data>
 <data name="List_New" xml:space="preserve"><value>Nieuwe braindump</value></data>
@@ -105,7 +101,7 @@
 <data name="Common_Retry" xml:space="preserve"><value>Opnieuw proberen</value></data>
 <data name="Confirm_Title" xml:space="preserve"><value>Deze gedachte voorgoed verwijderen?</value></data>
 <data name="Confirm_Text" xml:space="preserve"><value>Dit verwijdert de gedachte definitief. Je kunt dit niet ongedaan maken.</value></data>
-<data name="Confirm_AllTitle" xml:space="preserve"><value>Alle Nagapie-gegevens verwijderen?</value></data>
+<data name="Confirm_AllTitle" xml:space="preserve"><value>Alle Braindump-gegevens verwijderen?</value></data>
 <data name="Confirm_AllText" xml:space="preserve"><value>Alle braindumps, gedachten, concepten, categorieën en instellingen in je account worden verwijderd. Je account blijft bestaan. Bewaar je licentiesleutel om opnieuw te ontgrendelen.</value></data>
 <data name="Consent_Title" xml:space="preserve"><value>Een beetje hulp bij het ordenen</value></data>
 <data name="Consent_Text" xml:space="preserve"><value>Je volledige braindump en categorienamen worden naar {0} gestuurd voor suggesties voor gedachten, categorieën en tijdvakken. Je concepten en opgeslagen gedachten staan in de database bij je account. De inhoud wordt niet in gewone applicatielogs bewaard.</value></data>
@@ -115,7 +111,7 @@
 <data name="Speech_Start" xml:space="preserve"><value>Spreek het uit</value></data>
 <data name="Speech_Stop" xml:space="preserve"><value>Stop opnemen</value></data>
 <data name="Speech_Title" xml:space="preserve"><value>Voordat je begint</value></data>
-<data name="Speech_Notice" xml:space="preserve"><value>Spraakherkenning kan audio naar je browser- of apparaatleverancier sturen. Nagapie bewaart geen audio. De opname stopt na vijf minuten.</value></data>
+<data name="Speech_Notice" xml:space="preserve"><value>Spraakherkenning kan audio naar je browser- of apparaatleverancier sturen. Braindump bewaart geen audio. De opname stopt na vijf minuten.</value></data>
 <data name="Speech_Agree" xml:space="preserve"><value>Begin met spreken</value></data>
 <data name="Speech_Listening" xml:space="preserve"><value>Ik luister… neem je tijd.</value></data>
 <data name="Speech_Error" xml:space="preserve"><value>Spraakherkenning is gestopt. Je tekst staat er nog; je kunt verder typen.</value></data>
@@ -152,11 +148,11 @@
 <data name="Access_NotConfigured" xml:space="preserve"><value>Kopen is nog niet beschikbaar.</value></data>
 <data name="Access_Count" xml:space="preserve"><value>van 3 gratis braindumps gebruikt</value></data>
 <data name="Privacy_Title" xml:space="preserve"><value>Jouw privacy</value></data>
-<data name="Privacy_Intro" xml:space="preserve"><value>Nagapie bewaart je e-mailadres en een beveiligde wachtwoordhash, plus je braindumps, gedachten, concepten, categorieën en instellingen in een SQL-database. Je gegevens zijn gekoppeld aan je account. Er worden geen gedachten opgeslagen in browseropslag. Je browser gebruikt een beveiligde sessiecookie om je aan te melden.</value></data>
+<data name="Privacy_Intro" xml:space="preserve"><value>Braindump bewaart je e-mailadres en een beveiligde wachtwoordhash, plus je braindumps, gedachten, concepten, categorieën en instellingen in een SQL-database. Je gegevens zijn gekoppeld aan je account. Er worden geen gedachten opgeslagen in browseropslag. Je browser gebruikt een beveiligde sessiecookie om je aan te melden.</value></data>
 <data name="Privacy_Ai" xml:space="preserve"><value>Als je toestemming geeft voor automatisch ordenen, stuurt onze API je tekst en categorienamen naar de ingestelde AI-provider. Je concepten en opgeslagen braindumps staan bij je account in SQL. De inhoud wordt niet in applicatielogs bewaard; technische aanvraaggegevens kunnen wel worden gelogd. Je kunt je AI-toestemming intrekken bij Instellingen.</value></data>
 <data name="Privacy_Test" xml:space="preserve"><value>Vóór publieke lancering moeten bedrijfsgegevens, bewaartermijnen en trainingsvoorwaarden van de aanbieder, verwerkingsregio en logretentie worden ingevuld. Deze pagina beschrijft de testversie; het is nog geen definitieve privacyverklaring.</value></data>
-<data name="Terms_Title" xml:space="preserve"><value>Over het gebruik van Nagapie</value></data>
-<data name="Terms_Text" xml:space="preserve"><value>Nagapie helpt je gedachten vast te leggen en te ordenen. AI-suggesties kunnen onjuist zijn; controleer ze voordat je opslaat. Tijdvakken veranderen niet automatisch en de app verstuurt geen herinneringen. Bewaar belangrijke informatie ook ergens anders.</value></data>
+<data name="Terms_Title" xml:space="preserve"><value>Over het gebruik van Braindump</value></data>
+<data name="Terms_Text" xml:space="preserve"><value>Braindump helpt je gedachten vast te leggen en te ordenen. AI-suggesties kunnen onjuist zijn; controleer ze voordat je opslaat. Tijdvakken veranderen niet automatisch en de app verstuurt geen herinneringen. Bewaar belangrijke informatie ook ergens anders.</value></data>
 <data name="Terms_Test" xml:space="preserve"><value>Dit is een testversie. Definitieve voorwaarden, bedrijfsgegevens, aankoopvoorwaarden en belastinginformatie moeten vóór verkoop worden ingevuld.</value></data>
 <data name="Error_STORAGE" xml:space="preserve"><value>Opslaan is niet gelukt. Controleer je verbinding en probeer opnieuw. Niet-opgeslagen tekst gaat verloren als je deze pagina sluit.</value></data>
 <data name="Error_STORAGE_INVALID" xml:space="preserve"><value>Je accountgegevens konden niet veilig worden geladen. Er is niets overschreven. Probeer de pagina opnieuw te laden.</value></data>
@@ -203,4 +199,12 @@
 <data name="Error_SESSION_CHANGED" xml:space="preserve"><value>Je sessie is verlopen of het account is gewijzigd. Laad de pagina opnieuw en log in.</value></data>
 <data name="Error_SAVE_CONFLICT" xml:space="preserve"><value>Deze gegevens zijn in een ander venster gewijzigd. Kopieer je nieuwe tekst voordat je de pagina opnieuw laadt. Er is niets overschreven.</value></data>
 <data name="Dump_NotSaved" xml:space="preserve"><value>Nog niet opgeslagen</value></data>
+<data name="Common_LoadMore" xml:space="preserve"><value>Meer laden</value></data>
+<data name="Horizon_Hint_tomorrow" xml:space="preserve"><value>Maak wat ruimte voor morgen.</value></data>
+<data name="Horizon_Hint_today" xml:space="preserve"><value>Een beetje aandacht vandaag.</value></data>
+<data name="Horizon_date" xml:space="preserve"><value>Op een datum</value></data>
+<data name="Horizon_Hint_later" xml:space="preserve"><value>Dit mag wachten tot later.</value></data>
+<data name="Horizon_tomorrow" xml:space="preserve"><value>Morgen</value></data>
+<data name="Horizon_Hint_date" xml:space="preserve"><value>Gepland voor een datum die je koos.</value></data>
+<data name="Horizon_PickDate" xml:space="preserve"><value>Kies een datum</value></data>
 </root>

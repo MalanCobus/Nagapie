@@ -54,3 +54,16 @@ node tests/verify-publish.mjs http://localhost:5211
 ```
 
 The local preview for this session runs the final published output in artifacts/app on http://localhost:5211. Development restart instructions and secure AI configuration are in README.md.
+# Relational data upgrade verification
+
+- 78 .NET tests passed (24 client, 54 API/domain), including per-item concurrency, stale draft rejection, category reference cleanup, legacy import/rollback, reset isolation, client delta requests, and SQL history pagination.
+- Four service-worker tests passed; saved user data remains network-only.
+- SQL Server LocalDB upgrade check used an isolated temporary database with the previous migration and synthetic saved data. Applied the new migration and importer under `db_datareader`, `db_datawriter`, and `db_ddladmin`; verified original history, imported thought content, preserved archive, repeat-safe import, and relational updates. Temporary database was removed afterward; the user's live database was not used for this test.
+- EF reports no pending model changes; formatting verification passed. Release publishing succeeded in `artifacts/relational-release`.
+- Azure deployment remains a user action. Follow the one-time stop/publish/start cutover in `sql-and-accounts.md` to prevent old instances writing JSON during import.
+# Braindump naming, categories and planning verification
+
+- 80 .NET tests and four service-worker tests passed. Date validation checks require a date only for the specific-date option and reject the removed next-week option on new writes.
+- Browser check against an isolated SQL Server database: registered a temporary account, kept the five standard categories, created and selected a personal category in the review editor, chose 15 October 2026, committed the thought and reloaded. Both the category and exact date persisted; the header and page title displayed Braindump.
+- A separate SQL Server upgrade test started at the previous relational schema. It verified that next-week thoughts and draft suggestions move to later, concurrency versions change, and selected dates round-trip as SQL date values. Both temporary test databases were removed.
+- EF model/migration consistency, formatting, and Release publishing passed. Azure deployment was not performed.

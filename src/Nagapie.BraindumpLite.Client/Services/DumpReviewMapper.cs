@@ -17,7 +17,7 @@ public static class DumpReviewMapper
             Text = item.Text,
             SourceDumpId = response.SourceDumpId,
             CategoryId = item.SuggestedCategoryId is { } id && categoryIds.Contains(id) ? id : null,
-            PlanningHorizon = PlanningHorizons.All.Contains(item.PlanningHorizon)
+            PlanningHorizon = item.PlanningHorizon is "today" or "tomorrow" or "later"
                 ? item.PlanningHorizon
                 : "later",
             InputMethod = inputMethod

@@ -37,7 +37,7 @@
 <data name="Step_Dump" xml:space="preserve"><value>Dump it</value></data>
 <data name="Step_Sort" xml:space="preserve"><value>Sort it</value></data>
 <data name="Step_Clear" xml:space="preserve"><value>Clear it</value></data>
-<data name="Welcome_Eyebrow" xml:space="preserve"><value>WELCOME TO NAGAPIE</value></data>
+<data name="Welcome_Eyebrow" xml:space="preserve"><value>WELCOME TO BRAINDUMP</value></data>
 <data name="Welcome_Title" xml:space="preserve"><value>Your head can take a breath.</value></data>
 <data name="Welcome_Text" xml:space="preserve"><value>A quiet place for everything you’re carrying. Write it down, find a little order, and make room for what matters.</value></data>
 <data name="Welcome_Dump" xml:space="preserve"><value>Get it out of your head.</value></data>
@@ -74,12 +74,8 @@
 <data name="Category_terra" xml:space="preserve"><value>Terracotta</value></data>
 <data name="Category_stone" xml:space="preserve"><value>Stone</value></data>
 <data name="Horizon_today" xml:space="preserve"><value>Today</value></data>
-<data name="Horizon_next-week" xml:space="preserve"><value>Next week</value></data>
 <data name="Horizon_later" xml:space="preserve"><value>Later</value></data>
 <data name="Horizon_Label" xml:space="preserve"><value>When</value></data>
-<data name="Horizon_TodayHint" xml:space="preserve"><value>Just what needs your attention now.</value></data>
-<data name="Horizon_WeekHint" xml:space="preserve"><value>A little space in the days ahead.</value></data>
-<data name="Horizon_LaterHint" xml:space="preserve"><value>Safe here, until you’re ready.</value></data>
 <data name="List_Title" xml:space="preserve"><value>A little more headspace.</value></data>
 <data name="List_Subtitle" xml:space="preserve"><value>Everything has a place. Take it one thought at a time.</value></data>
 <data name="List_New" xml:space="preserve"><value>New braindump</value></data>
@@ -105,7 +101,7 @@
 <data name="Common_Retry" xml:space="preserve"><value>Try again</value></data>
 <data name="Confirm_Title" xml:space="preserve"><value>Let this thought go for good?</value></data>
 <data name="Confirm_Text" xml:space="preserve"><value>This permanently deletes it. You won’t be able to bring it back.</value></data>
-<data name="Confirm_AllTitle" xml:space="preserve"><value>Delete all Nagapie data?</value></data>
+<data name="Confirm_AllTitle" xml:space="preserve"><value>Delete all Braindump data?</value></data>
 <data name="Confirm_AllText" xml:space="preserve"><value>All braindumps, thoughts, drafts, categories, and settings in your account will be deleted. Your account remains. Keep your license key to unlock again.</value></data>
 <data name="Consent_Title" xml:space="preserve"><value>A little help with sorting</value></data>
 <data name="Consent_Text" xml:space="preserve"><value>Your full braindump and category names will be sent to {0} to suggest thoughts, categories, and time buckets. Your drafts and saved thoughts are stored in the database with your account. Content is not kept in ordinary application logs.</value></data>
@@ -115,7 +111,7 @@
 <data name="Speech_Start" xml:space="preserve"><value>Speak your mind</value></data>
 <data name="Speech_Stop" xml:space="preserve"><value>Stop recording</value></data>
 <data name="Speech_Title" xml:space="preserve"><value>Before you speak</value></data>
-<data name="Speech_Notice" xml:space="preserve"><value>Speech recognition may send audio to your browser or device provider. Nagapie does not store audio. Recording stops after five minutes.</value></data>
+<data name="Speech_Notice" xml:space="preserve"><value>Speech recognition may send audio to your browser or device provider. Braindump does not store audio. Recording stops after five minutes.</value></data>
 <data name="Speech_Agree" xml:space="preserve"><value>Start speaking</value></data>
 <data name="Speech_Listening" xml:space="preserve"><value>Listening… take your time.</value></data>
 <data name="Speech_Error" xml:space="preserve"><value>Speech recognition stopped. Your text is still here; you can keep typing.</value></data>
@@ -152,11 +148,11 @@
 <data name="Access_NotConfigured" xml:space="preserve"><value>Purchasing is not available yet.</value></data>
 <data name="Access_Count" xml:space="preserve"><value>of 3 free braindumps used</value></data>
 <data name="Privacy_Title" xml:space="preserve"><value>Your privacy</value></data>
-<data name="Privacy_Intro" xml:space="preserve"><value>Nagapie stores your email address and a protected password hash, along with your braindumps, thoughts, drafts, categories, and settings in a SQL database. Your data belongs to your account. Thoughts are not saved in browser storage. Your browser uses a secure session cookie to sign you in.</value></data>
+<data name="Privacy_Intro" xml:space="preserve"><value>Braindump stores your email address and a protected password hash, along with your braindumps, thoughts, drafts, categories, and settings in a SQL database. Your data belongs to your account. Thoughts are not saved in browser storage. Your browser uses a secure session cookie to sign you in.</value></data>
 <data name="Privacy_Ai" xml:space="preserve"><value>If you agree to automatic sorting, our API sends your text and category names to the configured AI provider. Drafts and saved braindumps are stored with your account in SQL. Content is not kept in application logs; technical request metadata may be logged. You can withdraw AI permission in Settings.</value></data>
 <data name="Privacy_Test" xml:space="preserve"><value>Before public launch, the operator’s identity, provider retention and training terms, processing region, and log retention must be finalized. This page describes the test build; it is not a completed production privacy notice.</value></data>
-<data name="Terms_Title" xml:space="preserve"><value>About using Nagapie</value></data>
-<data name="Terms_Text" xml:space="preserve"><value>Nagapie helps you capture and organize thoughts. AI suggestions can be wrong; review them before saving. Time buckets do not move automatically, and the app does not send reminders. Keep a separate copy of anything you cannot afford to lose.</value></data>
+<data name="Terms_Title" xml:space="preserve"><value>About using Braindump</value></data>
+<data name="Terms_Text" xml:space="preserve"><value>Braindump helps you capture and organize thoughts. AI suggestions can be wrong; review them before saving. Time buckets do not move automatically, and the app does not send reminders. Keep a separate copy of anything you cannot afford to lose.</value></data>
 <data name="Terms_Test" xml:space="preserve"><value>This is a test build. Production terms, business details, purchase conditions, and tax information still need to be completed before sales begin.</value></data>
 <data name="Error_STORAGE" xml:space="preserve"><value>Saving failed. Check your connection and try again. Unsaved text will be lost if you close this page.</value></data>
 <data name="Error_STORAGE_INVALID" xml:space="preserve"><value>Your account data could not be loaded safely. Nothing was overwritten. Try reloading the page.</value></data>
@@ -203,4 +199,12 @@
 <data name="Error_SESSION_CHANGED" xml:space="preserve"><value>Your session expired or the account changed. Reload the page and sign in.</value></data>
 <data name="Error_SAVE_CONFLICT" xml:space="preserve"><value>This data changed in another window. Copy your new text before reloading the page. Nothing was overwritten.</value></data>
 <data name="Dump_NotSaved" xml:space="preserve"><value>Not saved yet</value></data>
+<data name="Common_LoadMore" xml:space="preserve"><value>Load more</value></data>
+<data name="Horizon_Hint_tomorrow" xml:space="preserve"><value>Leave some room for tomorrow.</value></data>
+<data name="Horizon_Hint_today" xml:space="preserve"><value>A little attention today.</value></data>
+<data name="Horizon_date" xml:space="preserve"><value>On a date</value></data>
+<data name="Horizon_Hint_later" xml:space="preserve"><value>It can wait until later.</value></data>
+<data name="Horizon_tomorrow" xml:space="preserve"><value>Tomorrow</value></data>
+<data name="Horizon_Hint_date" xml:space="preserve"><value>Planned for a date you chose.</value></data>
+<data name="Horizon_PickDate" xml:space="preserve"><value>Choose a date</value></data>
 </root>

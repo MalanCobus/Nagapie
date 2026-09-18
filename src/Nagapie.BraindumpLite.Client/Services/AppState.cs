@@ -139,7 +139,7 @@ public sealed class AppState(IUserDataStore storage, INagapieApiClient api, IJSR
     public async Task UpdateAsync(BrainDumpItem item)
     {
         RequireStorage();
-        if (string.IsNullOrWhiteSpace(item.Text) || item.Text.Length > 5000 || !Horizons.Contains(item.PlanningHorizon))
+        if (string.IsNullOrWhiteSpace(item.Text) || item.Text.Length > 5000 || !PlanningHorizons.IsValid(item))
         {
             throw new InvalidDataException(ErrorCodes.InvalidInput);
         }
@@ -181,25 +181,12 @@ public sealed class AppState(IUserDataStore storage, INagapieApiClient api, IJSR
             return;
         }
 
-        var nextStore = Store with
-        {
-            Items = Store.Items.Select(i => i.CategoryId == id ? i with { CategoryId = null } : i).ToList()
-        };
-        await storage.WriteAsync("items", nextStore);
-        Store = nextStore;
-        if (Draft.Review is not null)
-        {
-            foreach (var item in Draft.Review.Where(i => i.CategoryId == id))
-            {
-                item.CategoryId = null;
-            }
-
-            await SaveDraftAsync();
-        }
-
         var next = Categories.Where(c => c.Id != id).ToList();
+        // The server clears item and draft references in the same transaction as the category deletion.
         await storage.WriteAsync("categories", next);
         Categories = next;
+        Store = await storage.ReadAsync<ItemStore>("items") ?? new();
+        Draft = await storage.ReadAsync<Draft>("draft") ?? new();
         Notify();
     }
 

@@ -14,9 +14,17 @@ public class UserAccountsTests
         .WithWebHostBuilder(builder => builder.UseEnvironment("Development")
             .ConfigureServices(AccountTestSupport.UseTestDatabase));
 
-    private static Task<HttpResponseMessage> SaveAsync<T>(HttpClient client, string key, T value, Guid version = default) =>
-        client.PutAsJsonAsync("/api/data/" + key,
-            new SaveUserDocumentRequest(JsonSerializer.SerializeToElement(value, JsonSerializerOptions.Web), version));
+    private static async Task<HttpResponseMessage> SaveAsync<T>(HttpClient client, string key, T value, Guid? version = null)
+    {
+        if (version is null && key == "draft")
+        {
+            using var response = await client.GetAsync("/api/data/draft");
+            if (response.IsSuccessStatusCode)
+                version = (await response.Content.ReadFromJsonAsync<UserDocumentResponse>())!.Version;
+        }
+        return await client.PutAsJsonAsync("/api/data/" + key,
+            new SaveUserDocumentRequest(JsonSerializer.SerializeToElement(value, JsonSerializerOptions.Web), version ?? Guid.Empty));
+    }
 
     [Fact]
     public async Task AnonymousUsersCannotReadWriteOrUseAi()
@@ -82,7 +90,7 @@ public class UserAccountsTests
         var first = await SaveAsync(client, "draft", new Draft { Text = "Newer text" });
         first.EnsureSuccessStatusCode();
         var version = (await first.Content.ReadFromJsonAsync<UserDocumentResponse>())!.Version;
-        Assert.Equal(HttpStatusCode.Conflict, (await SaveAsync(client, "draft", new Draft { Text = "Old text" })).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await SaveAsync(client, "draft", new Draft { Text = "Old text" }, Guid.Empty)).StatusCode);
         (await client.DeleteAsync($"/api/data/draft?version={version}")).EnsureSuccessStatusCode();
         Assert.Equal(HttpStatusCode.Conflict, (await SaveAsync(client, "draft", new Draft { Text = "Restore old" }, version)).StatusCode);
     }
@@ -95,11 +103,10 @@ public class UserAccountsTests
         using var second = await AccountTestSupport.CreateUserAsync(factory);
         var draft = new Draft { Text = "Original raw dump" };
         (await SaveAsync(first, "draft", draft)).EnsureSuccessStatusCode();
-        (await SaveAsync(first, "items", new ItemStore
-        {
-            Items = [new() { Text = "Reviewed task", SourceDumpId = draft.Id }],
-            SavedDumps = [draft.Id]
-        })).EnsureSuccessStatusCode();
+        var items = (await first.GetFromJsonAsync<UserDocumentResponse>("/api/data/items"))!;
+        var draftState = (await first.GetFromJsonAsync<UserDocumentResponse>("/api/data/draft"))!;
+        (await first.PostAsJsonAsync("/api/data/items/changes", new SaveThoughtsRequest(items.Version,
+            [new(new() { Text = "Reviewed task", SourceDumpId = draft.Id }, Guid.Empty)], [], draft.Id, draftState.Version))).EnsureSuccessStatusCode();
         var history = await first.GetFromJsonAsync<List<SavedDumpResponse>>("/api/data/history/dumps");
         Assert.Equal(draft.Text, Assert.Single(history!).Text);
         Assert.Empty((await second.GetFromJsonAsync<List<SavedDumpResponse>>("/api/data/history/dumps"))!);

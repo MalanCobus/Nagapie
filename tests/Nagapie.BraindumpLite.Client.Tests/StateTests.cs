@@ -21,6 +21,13 @@ public class StateTests
                 throw new JSException("quota exceeded");
             }
 
+            if (key == "categories" && value is List<Category> categories && Data.TryGetValue("items", out var itemsJson))
+            {
+                var items = JsonSerializer.Deserialize<ItemStore>(itemsJson)!;
+                foreach (var item in items.Items.Where(item => item.CategoryId is { } id && !categories.Any(category => category.Id == id)))
+                    item.CategoryId = null;
+                Data["items"] = JsonSerializer.Serialize(items);
+            }
             Data[key] = JsonSerializer.Serialize(value);
             return Task.CompletedTask;
         }

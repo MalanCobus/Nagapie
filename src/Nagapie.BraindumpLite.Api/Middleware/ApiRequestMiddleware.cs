@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using Nagapie.BraindumpLite.Api.Data;
 using Nagapie.BraindumpLite.Contracts;
 
 namespace Nagapie.BraindumpLite.Api;
@@ -29,6 +31,18 @@ public sealed class ApiRequestMiddleware(RequestDelegate next, ILogger<ApiReques
         }
         catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
         {
+        }
+        catch (Exception exception) when (exception is DataConflictException or DbUpdateConcurrencyException or
+            Microsoft.Data.SqlClient.SqlException { Number: 1205 or 51000 } ||
+            exception is DbUpdateException { InnerException: Microsoft.Data.SqlClient.SqlException { Number: 2601 or 2627 or 1205 } })
+        {
+            context.Response.StatusCode = StatusCodes.Status409Conflict;
+            await context.Response.WriteAsJsonAsync(new ApiError(ErrorCodes.SaveConflict, context.TraceIdentifier));
+        }
+        catch (InvalidDataException)
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await context.Response.WriteAsJsonAsync(new ApiError(ErrorCodes.InvalidInput, context.TraceIdentifier));
         }
         catch (Exception)
         {

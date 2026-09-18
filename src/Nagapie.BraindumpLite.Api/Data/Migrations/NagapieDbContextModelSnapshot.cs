@@ -220,6 +220,23 @@ namespace Nagapie.BraindumpLite.Api.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Nagapie.BraindumpLite.Api.Data.RelationalAccount", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("Epoch")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("ImportedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("RelationalAccounts");
+                });
+
             modelBuilder.Entity("Nagapie.BraindumpLite.Api.Data.SavedBrainDump", b =>
                 {
                     b.Property<string>("UserId")
@@ -233,6 +250,12 @@ namespace Nagapie.BraindumpLite.Api.Data.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("nvarchar(16)");
 
+                    b.Property<bool>("IsCommitted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("OriginalAvailable")
+                        .HasColumnType("bit");
+
                     b.Property<DateTimeOffset>("SavedAtUtc")
                         .HasColumnType("datetimeoffset");
 
@@ -241,9 +264,106 @@ namespace Nagapie.BraindumpLite.Api.Data.Migrations
                         .HasMaxLength(5000)
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("WasAiProcessed")
+                        .HasColumnType("bit");
+
                     b.HasKey("UserId", "Id");
 
+                    b.HasIndex("UserId", "SavedAtUtc", "Id");
+
                     b.ToTable("BrainDumps");
+                });
+
+            modelBuilder.Entity("Nagapie.BraindumpLite.Api.Data.Thought", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("CompletedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CompletionReason")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("InputMethod")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly?>("PlannedDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("PlanningHorizon")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<Guid?>("SourceDumpId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(5000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("UserId", "Id");
+
+                    b.HasIndex("UserId", "CategoryId");
+
+                    b.HasIndex("UserId", "SourceDumpId");
+
+                    b.HasIndex("UserId", "CompletionReason", "PlanningHorizon", "CreatedAtUtc");
+
+                    b.ToTable("Thoughts");
+                });
+
+            modelBuilder.Entity("Nagapie.BraindumpLite.Api.Data.UserCategory", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ColorToken")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("CustomName")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("UserId", "Id");
+
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("Nagapie.BraindumpLite.Api.Data.UserDocument", b =>
@@ -268,6 +388,41 @@ namespace Nagapie.BraindumpLite.Api.Data.Migrations
                     b.HasKey("UserId", "Key");
 
                     b.ToTable("UserDocuments");
+                });
+
+            modelBuilder.Entity("Nagapie.BraindumpLite.Api.Data.UserDraft", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("InputMethod")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ReviewJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(5000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("WasAiProcessed")
+                        .HasColumnType("bit");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("Drafts");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -321,7 +476,44 @@ namespace Nagapie.BraindumpLite.Api.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Nagapie.BraindumpLite.Api.Data.RelationalAccount", b =>
+                {
+                    b.HasOne("Nagapie.BraindumpLite.Api.Data.ApplicationUser", null)
+                        .WithOne()
+                        .HasForeignKey("Nagapie.BraindumpLite.Api.Data.RelationalAccount", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Nagapie.BraindumpLite.Api.Data.SavedBrainDump", b =>
+                {
+                    b.HasOne("Nagapie.BraindumpLite.Api.Data.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Nagapie.BraindumpLite.Api.Data.Thought", b =>
+                {
+                    b.HasOne("Nagapie.BraindumpLite.Api.Data.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Nagapie.BraindumpLite.Api.Data.UserCategory", null)
+                        .WithMany()
+                        .HasForeignKey("UserId", "CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Nagapie.BraindumpLite.Api.Data.SavedBrainDump", null)
+                        .WithMany()
+                        .HasForeignKey("UserId", "SourceDumpId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Nagapie.BraindumpLite.Api.Data.UserCategory", b =>
                 {
                     b.HasOne("Nagapie.BraindumpLite.Api.Data.ApplicationUser", null)
                         .WithMany()
@@ -335,6 +527,15 @@ namespace Nagapie.BraindumpLite.Api.Data.Migrations
                     b.HasOne("Nagapie.BraindumpLite.Api.Data.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Nagapie.BraindumpLite.Api.Data.UserDraft", b =>
+                {
+                    b.HasOne("Nagapie.BraindumpLite.Api.Data.ApplicationUser", null)
+                        .WithOne()
+                        .HasForeignKey("Nagapie.BraindumpLite.Api.Data.UserDraft", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

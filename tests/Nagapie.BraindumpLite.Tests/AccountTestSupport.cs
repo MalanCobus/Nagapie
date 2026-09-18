@@ -14,6 +14,8 @@ internal static class AccountTestSupport
 {
     public static void UseTestDatabase(IServiceCollection services)
     {
+        services.RemoveAll<IDatabaseMigrator>();
+        services.AddScoped<IDatabaseMigrator, TestDatabaseMigrator>();
         services.RemoveAll<DbContextOptions<NagapieDbContext>>();
         services.RemoveAll<IDbContextOptionsConfiguration<NagapieDbContext>>();
         services.AddSingleton(_ =>
@@ -24,6 +26,13 @@ internal static class AccountTestSupport
         });
         services.AddDbContext<NagapieDbContext>((provider, options) =>
             options.UseSqlite(provider.GetRequiredService<SqliteConnection>()));
+    }
+
+    private sealed class TestDatabaseMigrator(NagapieDbContext database) : IDatabaseMigrator
+    {
+        // These HTTP tests use SQLite; SQL Server migrations are verified separately.
+        public async Task MigrateAsync(CancellationToken cancellationToken = default) =>
+            await database.Database.EnsureCreatedAsync(cancellationToken);
     }
 
     public static async Task<HttpClient> CreateUserAsync(WebApplicationFactory<Program> factory, string? email = null)

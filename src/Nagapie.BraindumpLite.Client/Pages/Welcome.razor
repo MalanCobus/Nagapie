@@ -1,6 +1,6 @@
 @page "/welcome"
 @inherits PageBase
-<PageTitle>Nagapie</PageTitle>
+<PageTitle>Braindump</PageTitle>
 <div class="welcome">
     <div class="welcome-language"><button class="text-button @(State.Settings.Language == "nl-NL" ? "selected" : "")" @onclick='() => LanguageAsync("nl-NL")'>Nederlands</button><span>/</span><button class="text-button @(State.Settings.Language == "en-US" ? "selected" : "")" @onclick='() => LanguageAsync("en-US")'>English</button></div>
     <Botanical/>

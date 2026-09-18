@@ -1,6 +1,6 @@
 @page "/review/{SessionId:guid}"
 @inherits PageBase
-<PageTitle>Nagapie — @L["Step_Sort"]</PageTitle>
+<PageTitle>Braindump — @L["Step_Sort"]</PageTitle>
 <StepIndicator Active="1"/>
 @if (SessionId != State.Draft.Id || State.Draft.Review is null) {
     <section class="empty-state"><Icon Name="leaf" Size="44"/><h1>@L["Review_Empty"]</h1><a class="button primary" href="/">@L["Review_Back"]</a></section>

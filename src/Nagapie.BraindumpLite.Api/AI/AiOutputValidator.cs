@@ -21,7 +21,7 @@ public static class AiOutputValidator
                 Guid? id = Guid.TryParse(item.GetProperty("suggestedCategoryId").GetString(), out var parsed) &&
             request.AvailableCategories.Any(c => c.Id == parsed) ? parsed : null;
                 var horizon = item.GetProperty("planningHorizon").GetString();
-                return new SplitItemDto(text, id, horizon is "today" or "next-week" ? horizon : "later");
+                return new SplitItemDto(text, id, horizon is "today" or "tomorrow" ? horizon : "later");
             }).ToList();
             if (items.Count is < 1 or > 30)
             {

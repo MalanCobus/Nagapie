@@ -1,0 +1,26 @@
+@page "/settings"
+@inherits PageBase
+<PageTitle>Nagapie — @L["Nav_Settings"]</PageTitle>
+<section class="page-heading"><p class="eyebrow">@L["Nav_Settings"]</p><h1>@L["Settings_Title"]</h1><p class="lead">@L["Settings_Subtitle"]</p></section>
+<ErrorMessage Code="@Error"/>
+<section class="settings-card"><h2>@L["Settings_Language"]</h2><div class="language-switch"><button class="button @(State.Settings.Language == "nl-NL" ? "primary" : "secondary")" disabled="@Busy" @onclick='() => Language("nl-NL")'>Nederlands</button><button class="button @(State.Settings.Language == "en-US" ? "primary" : "secondary")" disabled="@Busy" @onclick='() => Language("en-US")'>English</button></div></section>
+<section class="settings-card"><h2>@L["Settings_Categories"]</h2><p>@L["Settings_CategoriesHint"]</p>
+@foreach (var c in State.Categories) { <div class="category-setting"><span class="category-tag @c.ColorToken">@CategoryName(c)</span>@if (!c.IsDefault) { <div><button class="text-button" @onclick="() => Rename(c)">@L["Settings_Rename"]</button><button class="icon-button" aria-label="@L["Common_Delete"]" @onclick="() => deleteCategory = c"><Icon Name="trash" Size="17"/></button></div> } else { <Icon Name="lock" Size="15"/> }</div> }
+<div class="category-form"><label class="sr-only" for="new-category">@L["Category_New"]</label><input id="new-category" placeholder="@L["Category_New"]" maxlength="30" @bind="newName" @bind:event="oninput"/><label class="sr-only" for="category-color">@L["Category_Color"]</label><select id="category-color" @bind="color">@foreach(var c in new[] { "sage", "blue", "yellow", "terra", "stone" }) { <option value="@c">@L["Category_" + c]</option> }</select><button class="button secondary" disabled="@(Busy || string.IsNullOrWhiteSpace(newName))" @onclick="Add"><Icon Name="plus"/>@L["Category_Add"]</button></div></section>
+<section class="settings-card"><h2>@L["Settings_Ai"]</h2><p>@L[State.Settings.HasConsentedToAiProcessing ? "Settings_ConsentOn" : "Settings_ConsentOff"]</p>@if (State.Settings.HasConsentedToAiProcessing) { <button class="text-button" disabled="@Busy" @onclick="Revoke">@L["Settings_Revoke"]</button> }</section>
+<section class="settings-card"><h2>@L["Settings_Data"]</h2><p>@L["Welcome_LocalText"]</p><button class="text-button danger-text" @onclick="() => clear = true">@L["Settings_DeleteAll"]</button></section>
+<div class="about"><Icon Name="leaf" Size="28"/><p>@L["Settings_About"]</p><a href="mailto:hello@nagapie.nl">@L["Settings_Contact"]</a><small>@L["Settings_Version"]</small></div>
+@if (clear) { <Modal Title="@L["Confirm_AllTitle"]" Closed="() => clear = false"><p>@L["Confirm_AllText"]</p><ErrorMessage Code="@Error"/><div class="modal-actions"><button class="button secondary" autofocus @onclick="() => clear = false">@L["Common_Cancel"]</button><button class="button danger" disabled="@Busy" @onclick="Clear">@L["Common_Delete"]</button></div></Modal> }
+@if (deleteCategory is not null) { <Modal Title="@L["Common_Delete"]" Closed="() => deleteCategory = null"><p>@CategoryName(deleteCategory) → @L["Category_None"]</p><ErrorMessage Code="@Error"/><div class="modal-actions"><button class="button secondary" autofocus @onclick="() => deleteCategory = null">@L["Common_Cancel"]</button><button class="button danger" disabled="@Busy" @onclick="DeleteCategory">@L["Common_Delete"]</button></div></Modal> }
+@if (renaming is not null) { <Modal Title="@L["Settings_Rename"]" Closed="() => renaming = null"><label>@L["Category_New"]<input maxlength="30" @bind="renameValue" @bind:event="oninput"/></label><ErrorMessage Code="@Error"/><div class="modal-actions"><button class="button secondary" autofocus @onclick="() => renaming = null">@L["Common_Cancel"]</button><button class="button primary" disabled="@Busy" @onclick="SaveRename">@L["Common_Save"]</button></div></Modal> }
+@code {
+ bool clear; string newName = "", color = "sage", renameValue = "";
+ Category? deleteCategory, renaming;
+ Task Language(string language) => Run(() => State.SaveSettingsAsync(State.Settings with { Language = language }));
+ Task Revoke() => Run(() => State.SaveSettingsAsync(State.Settings with { HasConsentedToAiProcessing = false }));
+ Task Add() => Run(async () => { await State.SaveCategoryAsync(new(Guid.NewGuid(), "custom", newName, color, false)); newName = ""; });
+ void Rename(Category c) { renaming = c; renameValue = c.CustomName!; }
+ Task SaveRename() => Run(async () => { await State.SaveCategoryAsync(renaming! with { CustomName = renameValue }); renaming = null; });
+ Task DeleteCategory() => Run(async () => { await State.DeleteCategoryAsync(deleteCategory!.Id); deleteCategory = null; });
+ Task Clear() => Run(async () => { await State.ClearAsync(); clear = false; Nav.NavigateTo("/welcome"); });
+}

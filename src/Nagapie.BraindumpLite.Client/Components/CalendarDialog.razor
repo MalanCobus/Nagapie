@@ -1,0 +1,24 @@
+@inherits PageBase
+<Modal Title="@L["Calendar_Title"]" Closed="Closed">
+<p>@L["Calendar_Hint"]</p>
+<label class="field-label">@L["Calendar_Date"]<input type="date" @bind="date"/></label>
+<label class="checkbox"><input type="checkbox" @bind="allDay"/>@L["Calendar_AllDay"]</label>
+@if (!allDay) { <div class="field-row"><label>@L["Calendar_Start"]<input type="time" @bind="start" /></label><label>@L["Calendar_End"]<input type="time" @bind="end"/></label></div> }
+<ErrorMessage Code="@Error"/>
+<div class="modal-actions"><button class="button secondary" autofocus @onclick="() => Closed.InvokeAsync()">@L["Common_Cancel"]</button><button class="button primary" @onclick="Download">@L["Calendar_Download"]</button></div>
+</Modal>
+@code {
+ [Parameter, EditorRequired] public BrainDumpItem Item { get; set; } = default!;
+ [Parameter] public EventCallback Closed { get; set; }
+ DateTime date = DateTime.Today;
+ TimeOnly start = new(9, 0), end = new(9, 30);
+ bool allDay;
+ Task Download() => Run(async () => {
+    if (!allDay && end <= start) { Error = "CALENDAR"; return; }
+    var begins = allDay ? date.Date : DateTime.SpecifyKind(date.Date + start.ToTimeSpan(), DateTimeKind.Local);
+    var ends = allDay ? date.Date.AddDays(1) : DateTime.SpecifyKind(date.Date + end.ToTimeSpan(), DateTimeKind.Local);
+    var ics = CalendarExport.Create(Item.Text, CategoryName(Item.CategoryId), begins, ends, allDay);
+    await JS.InvokeVoidAsync("nagapie.download", $"braindump-{date:yyyy-MM-dd}.ics", ics, "text/calendar;charset=utf-8");
+    await Closed.InvokeAsync();
+ });
+}

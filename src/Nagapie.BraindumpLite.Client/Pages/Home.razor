@@ -1,0 +1,110 @@
+@page "/"
+@inherits PageBase
+@implements IAsyncDisposable
+<PageTitle>Nagapie — @L["Nav_Dump"]</PageTitle>
+<StepIndicator Active="0"/>
+<section class="hero">
+    <div><p class="eyebrow">@L["Dump_Eyebrow"]</p><h1>@L["Dump_Title"]</h1><p class="lead">@L["Dump_Subtitle"]</p></div><Botanical/>
+</section>
+@if (State.Draft.Review is not null) {
+    <div class="notice resume"><span>@L["Dump_Resume"]</span><a href="@("/review/" + State.Draft.Id)">@L["Dump_ResumeAction"] <span aria-hidden="true">→</span></a></div>
+}
+<section class="dump-card">
+    <div class="card-heading"><label for="braindump">@L["Dump_Label"]</label><Icon Name="spark"/></div>
+    <textarea id="braindump" class="dump-input" maxlength="5000" placeholder="@L["Dump_Placeholder"]" value="@State.Draft.Text" @oninput="Input" disabled="@Busy" aria-describedby="dump-hint"></textarea>
+    <div class="input-bottom"><span id="dump-hint">@L["Dump_Hint"]</span><span class="char-count">@State.Draft.Text.Length.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo(State.Settings.Language)) / @(5000.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo(State.Settings.Language)))</span></div>
+    <div class="card-actions">
+        @if (speechSupported) { <button class="button speech @(listening ? "recording" : "")" disabled="@Busy" @onclick="Speech"><Icon Name="mic"/>@(listening ? L["Speech_Stop"] : L["Speech_Start"])</button> }
+        else { <span class="quiet-note"><Icon Name="leaf" Size="17"/>@L["Dump_Empty"]</span> }
+        <button class="button primary" @onclick="Sort" disabled="@(Busy || string.IsNullOrWhiteSpace(State.Draft.Text))"><Icon Name="spark"/>@L["Dump_Sort"]<Icon Name="arrow" Size="18"/></button>
+    </div>
+</section>
+<div class="draft-meta"><span><span class="status-dot"></span>@(saving ? L["Dump_Saving"] : State.Draft.Text.Length > 0 ? L["Dump_Saved"] : L["Dump_Local"])</span><span><Icon Name="lock" Size="13"/>@L["Dump_Control"]</span></div>
+@if (listening) { <div class="notice" role="status">@L["Speech_Listening"]</div> }
+@if (Busy) { <div class="processing" role="status"><span class="spinner"></span><div><strong>@L["Dump_Processing"]</strong><p>@L["Dump_ProcessingDetail"]</p></div><button class="text-button" @onclick="Cancel">@L["Dump_Cancel"]</button></div> }
+<ErrorMessage Code="@Error"/>
+@if (Error is not null || !State.Config.AiAvailable) {
+    @if (Error is null) { <p class="connection-note">@L["Dump_AiUnavailable"]</p> }
+    <button class="text-button fallback" @onclick="SaveOne" disabled="@(Busy || string.IsNullOrWhiteSpace(State.Draft.Text))">@L["Dump_SaveOne"] <span aria-hidden="true">↗</span></button>
+}
+<div class="inspiration">
+    <div><span class="tiny-spark">✧</span><span>@L["Dump_Example"]</span></div><button class="text-button" disabled="@(Busy || State.Draft.Text.Length > 0)" @onclick="Example">@L["Dump_UseExample"] <span aria-hidden="true">↗</span></button>
+</div>
+<div class="thought-prompts"><span><span class="prompt-dot sage"></span>@L["Dump_Prompt1"]</span><span><span class="prompt-dot yellow"></span>@L["Dump_Prompt2"]</span><span><span class="prompt-dot terra"></span>@L["Dump_Prompt3"]</span></div>
+@if (State.Config.PaywallEnabled && State.Access.UnlockToken is null) { <p class="quiet-note">@State.Store.AiDumps.Count @L["Access_Count"]</p> }
+@if (consent) {
+    <Modal Title="@L["Consent_Title"]" Closed="() => consent = false"><p>@L["Consent_Text", State.Config.ProviderName]</p><p><a href="@State.Config.ProviderPrivacyUrl" target="_blank" rel="noopener noreferrer">@L["Consent_Provider"]</a> · <a href="/privacy">@L["Nav_Privacy"]</a></p><div class="modal-actions"><button class="button secondary" autofocus @onclick="WithoutAi">@L["Consent_Without"]</button><button class="button primary" @onclick="Consent">@L["Consent_Agree"]</button></div></Modal>
+}
+@if (speechConsent) {
+    <Modal Title="@L["Speech_Title"]" Closed="() => speechConsent = false"><p>@L["Speech_Notice"]</p><div class="modal-actions"><button class="button secondary" autofocus @onclick="() => speechConsent = false">@L["Common_Cancel"]</button><button class="button primary" @onclick="StartSpeech">@L["Speech_Agree"]</button></div></Modal>
+}
+@code {
+ bool consent, speechConsent, speechSupported, listening, saving;
+ CancellationTokenSource? debounce, processing;
+ DotNetObjectReference<Home>? reference;
+ protected override void OnInitialized() { if (!State.Settings.HasCompletedOnboarding) Nav.NavigateTo("/welcome"); }
+ protected override async Task OnAfterRenderAsync(bool first) {
+    if (!first) return;
+    reference = DotNetObjectReference.Create(this);
+    speechSupported = await JS.InvokeAsync<bool>("nagapie.speechSupported");
+    await JS.InvokeVoidAsync("nagapie.setLanguage", State.Settings.Language);
+    StateHasChanged();
+ }
+ async Task Input(ChangeEventArgs e) {
+    State.Draft.Text = (e.Value?.ToString() ?? "")[..Math.Min(e.Value?.ToString()?.Length ?? 0, 5000)];
+    State.Draft.Review = null; State.Draft.WasAiProcessed = false;
+    if (State.Store.SavedDumps.Contains(State.Draft.Id)) State.Draft.Id = Guid.NewGuid();
+    debounce?.Cancel(); debounce?.Dispose(); debounce = new(); var token = debounce.Token;
+    saving = true; Error = null;
+    try { await Task.Delay(400, token); await State.SaveDraftAsync(); saving = false; }
+    catch (OperationCanceledException) { }
+    catch (JSException) { Error = "STORAGE"; saving = false; }
+    catch (InvalidDataException ex) { Error = ex.Message; saving = false; }
+ }
+ Task Example() => Run(async () => { State.Draft.Text = L["Dump_ExampleText"]; await State.SaveDraftAsync(); });
+ async Task Sort() {
+    if (string.IsNullOrWhiteSpace(State.Draft.Text) || Busy) return;
+    if (!State.Settings.HasConsentedToAiProcessing) { consent = true; return; }
+    await Process();
+ }
+ async Task Consent() { consent = false; await Run(() => State.SaveSettingsAsync(State.Settings with { HasConsentedToAiProcessing = true })); if (Error is null) await Process(); }
+ async Task WithoutAi() { consent = false; await SaveOne(); }
+ Task SaveOne() => Run(async () => {
+    debounce?.Cancel(); await StopSpeech(); await State.SaveDraftAsync();
+    await State.SetReviewAsync([new() { Text = State.Draft.Text.Trim(), SourceDumpId = State.Draft.Id, InputMethod = State.Draft.InputMethod }], false);
+    Nav.NavigateTo("/review/" + State.Draft.Id);
+ });
+ Task Process() => Run(async () => {
+    debounce?.Cancel(); await StopSpeech(); await State.SaveDraftAsync(); saving = false;
+    if (State.Config.PaywallEnabled && State.Access.UnlockToken is null && State.Store.AiDumps.Count >= 3) { Nav.NavigateTo("/unlock"); return; }
+    if (!await JS.InvokeAsync<bool>("nagapie.online")) { Error = "OFFLINE"; return; }
+    processing?.Dispose(); processing = new();
+    var request = new ProcessDumpRequest(State.Draft.Id, State.Draft.Text.Trim(), State.Settings.Language, State.Draft.InputMethod, State.Categories.Select(c => new CategoryReferenceDto(c.Id, c.Key, CategoryName(c), c.IsDefault)).ToList(), State.Access.UnlockToken, State.Store.AiDumps.Count);
+    try {
+        using var response = await Http.PostAsJsonAsync("api/dumps/process", request, processing.Token);
+        if ((int)response.StatusCode == 402) { Nav.NavigateTo("/unlock"); return; }
+        if (!response.IsSuccessStatusCode) { Error = (await response.Content.ReadFromJsonAsync<ApiError>())?.Code ?? "AI_UNAVAILABLE"; return; }
+        var result = await response.Content.ReadFromJsonAsync<ProcessDumpResponse>();
+        if (result is null || result.SourceDumpId != State.Draft.Id || result.Items is not { Count: > 0 and <= 30 } || result.Items.Any(i => string.IsNullOrWhiteSpace(i.Text) || i.Text.Length > 500)) { Error = "AI_INVALID_OUTPUT"; return; }
+        await State.SetReviewAsync(result.Items.Select(i => new BrainDumpItem { Text = i.Text, SourceDumpId = result.SourceDumpId, CategoryId = State.Categories.Any(c => c.Id == i.SuggestedCategoryId) ? i.SuggestedCategoryId : null, PlanningHorizon = AppState.Horizons.Contains(i.PlanningHorizon) ? i.PlanningHorizon : "later", InputMethod = State.Draft.InputMethod }).ToList(), true);
+        Nav.NavigateTo("/review/" + State.Draft.Id);
+    } catch (OperationCanceledException) when (processing.IsCancellationRequested) { }
+    catch (System.Text.Json.JsonException) { Error = "AI_INVALID_OUTPUT"; }
+ });
+ void Cancel() => processing?.Cancel();
+ async Task Speech() { if (listening) await StopSpeech(); else if (!State.Settings.HasAcknowledgedSpeech) speechConsent = true; else await StartSpeech(); }
+ Task StartSpeech() => Run(async () => {
+    speechConsent = false;
+    await State.SaveSettingsAsync(State.Settings with { HasAcknowledgedSpeech = true });
+    listening = await JS.InvokeAsync<bool>("nagapie.startSpeech", State.Settings.Language, reference);
+    if (!listening) Error = "SPEECH"; else State.Draft.InputMethod = "speech";
+ });
+ async Task StopSpeech() { await JS.InvokeVoidAsync("nagapie.stopSpeech"); listening = false; }
+ [JSInvokable] public async Task Transcript(string text) { await Input(new ChangeEventArgs { Value = (State.Draft.Text + " " + text).Trim() }); await InvokeAsync(StateHasChanged); }
+ [JSInvokable] public Task SpeechEnded(bool error) { listening = false; if (error) Error = "SPEECH"; return InvokeAsync(StateHasChanged); }
+ public async ValueTask DisposeAsync() {
+    debounce?.Cancel(); debounce?.Dispose(); processing?.Cancel();
+    try { await StopSpeech(); if (saving) await State.SaveDraftAsync(); } catch (Exception ex) when (ex is JSException or InvalidDataException) { }
+    processing?.Dispose(); reference?.Dispose();
+ }
+}

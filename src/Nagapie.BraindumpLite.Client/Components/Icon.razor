@@ -1,0 +1,21 @@
+<svg width="@Size" height="@Size" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+@switch (Name)
+{
+ case "leaf": <path d="M19 4C8 2 3 7 6 14c3 7 13 3 13-10ZM5 21l9-12M8 17l-1-6M11 14l5-1"/> break;
+ case "list": <path d="m4 6 1 1 2-2m3 1h10M4 12h2m4 0h10M4 18h2m4 0h10"/> break;
+ case "settings": <path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="var(--cream)"/><circle cx="15" cy="17" r="3" fill="var(--cream)"/> break;
+ case "spark": <path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3ZM20 2v4m-2-2h4"/> break;
+ case "arrow": <path d="M4 12h16m-6-6 6 6-6 6"/> break;
+ case "mic": <rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4m-3 0h6"/> break;
+ case "check": <path d="m5 12 4 4L19 6"/> break;
+ case "plus": <path d="M12 5v14M5 12h14"/> break;
+ case "close": <path d="m6 6 12 12M6 18 18 6"/> break;
+ case "edit": <path d="m14 5 5 5M4 20l5-1L20 8a2 2 0 0 0-5-5L4 14v6Z"/> break;
+ case "trash": <path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/> break;
+ case "calendar": <rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18M7 15h3m4 0h3"/> break;
+ case "lock": <rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/> break;
+ case "sun": <circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1 1m12 12 1 1M5 19l1-1M18 6l1-1"/> break;
+ default: <path d="M5 12h14"/> break;
+}
+</svg>
+@code { [Parameter] public string Name { get; set; } = "leaf"; [Parameter] public int Size { get; set; } = 20; }

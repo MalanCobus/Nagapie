@@ -1,0 +1,36 @@
+@page "/review/{SessionId:guid}"
+@inherits PageBase
+<PageTitle>Nagapie — @L["Step_Sort"]</PageTitle>
+<StepIndicator Active="1"/>
+@if (SessionId != State.Draft.Id || State.Draft.Review is null) {
+    <section class="empty-state"><Icon Name="leaf" Size="44"/><h1>@L["Review_Empty"]</h1><a class="button primary" href="/">@L["Review_Back"]</a></section>
+} else {
+    <section class="page-heading"><p class="eyebrow">@State.Draft.Review.Count @L["Review_Count"]</p><h1>@L["Review_Title"]</h1><p class="lead">@L["Review_Subtitle"]</p></section>
+    <details class="original"><summary>@L["Review_Original"]</summary><p>@State.Draft.Text</p></details>
+    @foreach (var item in State.Draft.Review) {
+        <article class="review-card" @key="item.Id">
+            <div class="review-number">@((State.Draft.Review.IndexOf(item) + 1).ToString("00"))</div>
+            <div class="review-fields"><ItemFields Item="item" OnChanged="SaveDraft"/><div class="review-actions"><button class="text-button" disabled="@(Busy || State.Draft.Review.Last() == item)" @onclick="() => Merge(item)">@L["Review_Merge"]</button><button class="icon-button" aria-label="@L["Review_Remove"]" @onclick="() => deleting = item"><Icon Name="trash" Size="17"/></button></div></div>
+        </article>
+    }
+    @if (State.Draft.Review.Any(i => State.Categories.Any(c => c.Id == i.CategoryId && c.Key == "let-go"))) { <div class="notice"><Icon Name="leaf"/><span>@L["Review_LetGo"]</span></div> }
+    <ErrorMessage Code="@Error"/>
+    <div class="page-actions"><a href="/" class="text-button">@L["Review_Back"]</a><button class="button primary" disabled="@(Busy || State.Draft.Review.Count == 0 || State.Draft.Review.Any(i => string.IsNullOrWhiteSpace(i.Text)))" @onclick="Save">@L["Review_Save"]<Icon Name="arrow"/></button></div>
+}
+@if (deleting is not null) {
+    <Modal Title="@L["Review_Remove"]" Closed="() => deleting = null"><p>@deleting.Text</p><div class="modal-actions"><button class="button secondary" autofocus @onclick="() => deleting = null">@L["Common_Cancel"]</button><button class="button danger" @onclick="Remove">@L["Common_Delete"]</button></div></Modal>
+}
+@code {
+ [Parameter] public Guid SessionId { get; set; }
+ BrainDumpItem? deleting;
+ Task SaveDraft() => Run(State.SaveDraftAsync);
+ Task Save() => Run(async () => { await State.CommitAsync(); Nav.NavigateTo("/list"); });
+ Task Remove() => Run(async () => { var next = State.Draft.Review!.Where(i => i.Id != deleting!.Id).ToList(); await State.SetReviewAsync(next, State.Draft.WasAiProcessed); deleting = null; });
+ Task Merge(BrainDumpItem item) => Run(async () => {
+    var items = State.Draft.Review!.Select(i => i with { }).ToList(); var index = items.FindIndex(i => i.Id == item.Id);
+    if (index < 0 || index + 1 >= items.Count) return;
+    var merged = items[index].Text.Trim() + " " + items[index + 1].Text.Trim();
+    if (merged.Length > 5000) { Error = "MERGE"; return; }
+    items[index].Text = merged; items.RemoveAt(index + 1); await State.SetReviewAsync(items, State.Draft.WasAiProcessed);
+ });
+}

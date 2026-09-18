@@ -1,0 +1,17 @@
+@inject IJSRuntime JS
+@inject IStringLocalizer<AppResources> L
+@implements IAsyncDisposable
+<dialog @ref="dialog" class="modal" aria-labelledby="@titleId" @onclose="OnClosed" @oncancel="OnClosed">
+    <div class="modal-heading"><h2 id="@titleId">@Title</h2><button type="button" class="icon-button" aria-label="@L["Common_Close"]" @onclick="OnClosed"><Icon Name="close"/></button></div>
+    @ChildContent
+</dialog>
+@code {
+ [Parameter] public string Title { get; set; } = "";
+ [Parameter] public RenderFragment? ChildContent { get; set; }
+ [Parameter] public EventCallback Closed { get; set; }
+ private ElementReference dialog;
+ private readonly string titleId = "dialog-" + Guid.NewGuid();
+ protected override async Task OnAfterRenderAsync(bool firstRender) { if (firstRender) await JS.InvokeVoidAsync("nagapie.openDialog", dialog); }
+ private Task OnClosed() => Closed.InvokeAsync();
+ public async ValueTask DisposeAsync() { try { await JS.InvokeVoidAsync("nagapie.closeDialog", dialog); } catch (JSException) { } }
+}

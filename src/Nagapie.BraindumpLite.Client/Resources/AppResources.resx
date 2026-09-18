@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+<resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+<resheader name="version"><value>2.0</value></resheader>
+<data name="Nav_Dump" xml:space="preserve"><value>My braindump</value></data>
+<data name="Nav_List" xml:space="preserve"><value>My list</value></data>
+<data name="Nav_Settings" xml:space="preserve"><value>Settings</value></data>
+<data name="Nav_Privacy" xml:space="preserve"><value>Privacy</value></data>
+<data name="Nav_Terms" xml:space="preserve"><value>Terms</value></data>
+<data name="Nav_Skip" xml:space="preserve"><value>Skip to content</value></data>
+<data name="Nav_Tagline" xml:space="preserve"><value>A little space for your mind.</value></data>
+<data name="Dump_Eyebrow" xml:space="preserve"><value>LESS IN YOUR HEAD. MORE ROOM FOR YOU.</value></data>
+<data name="Dump_Title" xml:space="preserve"><value>Let it all out.</value></data>
+<data name="Dump_Subtitle" xml:space="preserve"><value>Tasks, thoughts, little things on your mind. Put them here, just as they are.</value></data>
+<data name="Dump_Label" xml:space="preserve"><value>What’s on your mind?</value></data>
+<data name="Dump_Placeholder" xml:space="preserve"><value>I need to book that appointment, there’s an idea I don’t want to forget, and I’m still thinking about…</value></data>
+<data name="Dump_Hint" xml:space="preserve"><value>No perfect sentences needed. Just start somewhere.</value></data>
+<data name="Dump_Sort" xml:space="preserve"><value>Help me sort this</value></data>
+<data name="Dump_SaveOne" xml:space="preserve"><value>Keep as one thought</value></data>
+<data name="Dump_Saved" xml:space="preserve"><value>Draft saved on this device</value></data>
+<data name="Dump_Saving" xml:space="preserve"><value>Saving your draft…</value></data>
+<data name="Dump_Empty" xml:space="preserve"><value>A small start is enough.</value></data>
+<data name="Dump_Example" xml:space="preserve"><value>Need a little inspiration?</value></data>
+<data name="Dump_ExampleText" xml:space="preserve"><value>Call the dentist today. Next week I want to plan a weekend away. An idea: a photo book for Mum’s birthday. I want to let go of worrying about that awkward conversation.</value></data>
+<data name="Dump_UseExample" xml:space="preserve"><value>Try an example</value></data>
+<data name="Dump_Resume" xml:space="preserve"><value>You have thoughts ready to review.</value></data>
+<data name="Dump_ResumeAction" xml:space="preserve"><value>Continue sorting</value></data>
+<data name="Dump_Processing" xml:space="preserve"><value>Making a little room…</value></data>
+<data name="Dump_ProcessingDetail" xml:space="preserve"><value>Separating your thoughts, gently. You’ll have the final say.</value></data>
+<data name="Dump_Cancel" xml:space="preserve"><value>Back to writing</value></data>
+<data name="Dump_AiUnavailable" xml:space="preserve"><value>Automatic sorting isn’t connected yet. You can still keep your thoughts here.</value></data>
+<data name="Dump_Local" xml:space="preserve"><value>Saved on this device</value></data>
+<data name="Dump_Control" xml:space="preserve"><value>You’re always in control</value></data>
+<data name="Dump_Prompt1" xml:space="preserve"><value>Something to do</value></data>
+<data name="Dump_Prompt2" xml:space="preserve"><value>An idea to keep</value></data>
+<data name="Dump_Prompt3" xml:space="preserve"><value>Something to let go</value></data>
+<data name="Step_Dump" xml:space="preserve"><value>Dump it</value></data>
+<data name="Step_Sort" xml:space="preserve"><value>Sort it</value></data>
+<data name="Step_Clear" xml:space="preserve"><value>Clear it</value></data>
+<data name="Welcome_Eyebrow" xml:space="preserve"><value>WELCOME TO NAGAPIE</value></data>
+<data name="Welcome_Title" xml:space="preserve"><value>Your head can take a breath.</value></data>
+<data name="Welcome_Text" xml:space="preserve"><value>A quiet place for everything you’re carrying. Write it down, find a little order, and make room for what matters.</value></data>
+<data name="Welcome_Dump" xml:space="preserve"><value>Get it out of your head.</value></data>
+<data name="Welcome_Sort" xml:space="preserve"><value>Find a place for every thought.</value></data>
+<data name="Welcome_Clear" xml:space="preserve"><value>Do it, keep it, or let it go.</value></data>
+<data name="Welcome_LocalTitle" xml:space="preserve"><value>A little note about your thoughts</value></data>
+<data name="Welcome_LocalText" xml:space="preserve"><value>Your list lives in this browser on this device. Clearing browser data removes it. There’s no account, cloud sync, or automatic backup.</value></data>
+<data name="Welcome_Acknowledge" xml:space="preserve"><value>I understand how my thoughts are stored.</value></data>
+<data name="Welcome_Start" xml:space="preserve"><value>Make a little space</value></data>
+<data name="Review_Title" xml:space="preserve"><value>A place for each thought.</value></data>
+<data name="Review_Subtitle" xml:space="preserve"><value>Here’s a little order. Change anything until it feels right.</value></data>
+<data name="Review_Save" xml:space="preserve"><value>Save to my list</value></data>
+<data name="Review_Merge" xml:space="preserve"><value>Merge with next</value></data>
+<data name="Review_Remove" xml:space="preserve"><value>Remove thought</value></data>
+<data name="Review_Back" xml:space="preserve"><value>Back to my braindump</value></data>
+<data name="Review_Empty" xml:space="preserve"><value>No thoughts to review yet.</value></data>
+<data name="Review_LetGo" xml:space="preserve"><value>Thoughts marked Let go will go to your archive. You can restore them anytime.</value></data>
+<data name="Review_Original" xml:space="preserve"><value>Your original words</value></data>
+<data name="Review_Count" xml:space="preserve"><value>thoughts to review</value></data>
+<data name="Category_do" xml:space="preserve"><value>Do</value></data>
+<data name="Category_plan" xml:space="preserve"><value>Plan</value></data>
+<data name="Category_idea" xml:space="preserve"><value>Idea</value></data>
+<data name="Category_remember" xml:space="preserve"><value>Remember</value></data>
+<data name="Category_let-go" xml:space="preserve"><value>Let go</value></data>
+<data name="Category_None" xml:space="preserve"><value>Unsorted</value></data>
+<data name="Category_Label" xml:space="preserve"><value>Category</value></data>
+<data name="Category_All" xml:space="preserve"><value>All categories</value></data>
+<data name="Category_New" xml:space="preserve"><value>New category name</value></data>
+<data name="Category_Add" xml:space="preserve"><value>Add category</value></data>
+<data name="Category_Color" xml:space="preserve"><value>Color</value></data>
+<data name="Category_sage" xml:space="preserve"><value>Sage</value></data>
+<data name="Category_blue" xml:space="preserve"><value>Blue</value></data>
+<data name="Category_yellow" xml:space="preserve"><value>Yellow</value></data>
+<data name="Category_terra" xml:space="preserve"><value>Terracotta</value></data>
+<data name="Category_stone" xml:space="preserve"><value>Stone</value></data>
+<data name="Horizon_today" xml:space="preserve"><value>Today</value></data>
+<data name="Horizon_next-week" xml:space="preserve"><value>Next week</value></data>
+<data name="Horizon_later" xml:space="preserve"><value>Later</value></data>
+<data name="Horizon_Label" xml:space="preserve"><value>When</value></data>
+<data name="Horizon_TodayHint" xml:space="preserve"><value>Just what needs your attention now.</value></data>
+<data name="Horizon_WeekHint" xml:space="preserve"><value>A little space in the days ahead.</value></data>
+<data name="Horizon_LaterHint" xml:space="preserve"><value>Safe here, until you’re ready.</value></data>
+<data name="List_Title" xml:space="preserve"><value>A little more headspace.</value></data>
+<data name="List_Subtitle" xml:space="preserve"><value>Everything has a place. Take it one thought at a time.</value></data>
+<data name="List_New" xml:space="preserve"><value>New braindump</value></data>
+<data name="List_Empty" xml:space="preserve"><value>Nothing here. Room to breathe.</value></data>
+<data name="List_EmptyAll" xml:space="preserve"><value>Your thoughts will find a home here.</value></data>
+<data name="List_EmptyDetail" xml:space="preserve"><value>Start with whatever’s on your mind. We’ll take it from there.</value></data>
+<data name="List_Archive" xml:space="preserve"><value>Done &amp; let go</value></data>
+<data name="List_Complete" xml:space="preserve"><value>Mark as done</value></data>
+<data name="List_LetGo" xml:space="preserve"><value>Let go</value></data>
+<data name="List_Restore" xml:space="preserve"><value>Restore</value></data>
+<data name="List_Edit" xml:space="preserve"><value>Edit thought</value></data>
+<data name="List_Delete" xml:space="preserve"><value>Delete permanently</value></data>
+<data name="List_Done" xml:space="preserve"><value>Done</value></data>
+<data name="List_Released" xml:space="preserve"><value>Let go</value></data>
+<data name="List_Feedback" xml:space="preserve"><value>A little lighter.</value></data>
+<data name="List_Undo" xml:space="preserve"><value>Undo</value></data>
+<data name="Common_Save" xml:space="preserve"><value>Save changes</value></data>
+<data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
+<data name="Common_Close" xml:space="preserve"><value>Close</value></data>
+<data name="Common_Delete" xml:space="preserve"><value>Delete</value></data>
+<data name="Common_Back" xml:space="preserve"><value>Back</value></data>
+<data name="Common_Loading" xml:space="preserve"><value>Making space…</value></data>
+<data name="Common_Retry" xml:space="preserve"><value>Try again</value></data>
+<data name="Confirm_Title" xml:space="preserve"><value>Let this thought go for good?</value></data>
+<data name="Confirm_Text" xml:space="preserve"><value>This permanently deletes it. You won’t be able to bring it back.</value></data>
+<data name="Confirm_AllTitle" xml:space="preserve"><value>Delete all Nagapie data?</value></data>
+<data name="Confirm_AllText" xml:space="preserve"><value>Your thoughts, draft, categories, and settings will be removed from this browser. Keep your license key to unlock again.</value></data>
+<data name="Consent_Title" xml:space="preserve"><value>A little help with sorting</value></data>
+<data name="Consent_Text" xml:space="preserve"><value>Your full braindump and category names will be sent to {0} to suggest individual thoughts, categories, and time buckets. Nagapie does not store that content in a server database or ordinary logs. Your saved list stays here.</value></data>
+<data name="Consent_Provider" xml:space="preserve"><value>Read the provider’s privacy information</value></data>
+<data name="Consent_Agree" xml:space="preserve"><value>Agree &amp; sort</value></data>
+<data name="Consent_Without" xml:space="preserve"><value>Continue without AI</value></data>
+<data name="Speech_Start" xml:space="preserve"><value>Speak your mind</value></data>
+<data name="Speech_Stop" xml:space="preserve"><value>Stop recording</value></data>
+<data name="Speech_Title" xml:space="preserve"><value>Before you speak</value></data>
+<data name="Speech_Notice" xml:space="preserve"><value>Speech recognition may send audio to your browser or device provider. Nagapie does not store audio. Recording stops after five minutes.</value></data>
+<data name="Speech_Agree" xml:space="preserve"><value>Start speaking</value></data>
+<data name="Speech_Listening" xml:space="preserve"><value>Listening… take your time.</value></data>
+<data name="Speech_Error" xml:space="preserve"><value>Speech recognition stopped. Your text is still here; you can keep typing.</value></data>
+<data name="Calendar_Title" xml:space="preserve"><value>Give it a moment in your day</value></data>
+<data name="Calendar_Export" xml:space="preserve"><value>Add to calendar</value></data>
+<data name="Calendar_Date" xml:space="preserve"><value>Date</value></data>
+<data name="Calendar_AllDay" xml:space="preserve"><value>All day</value></data>
+<data name="Calendar_Start" xml:space="preserve"><value>Start time</value></data>
+<data name="Calendar_End" xml:space="preserve"><value>End time</value></data>
+<data name="Calendar_Download" xml:space="preserve"><value>Download calendar event</value></data>
+<data name="Calendar_Hint" xml:space="preserve"><value>Download an event to open in Apple Calendar, Google Calendar, or Outlook. Nothing is added automatically.</value></data>
+<data name="Settings_Title" xml:space="preserve"><value>Make yourself at home.</value></data>
+<data name="Settings_Subtitle" xml:space="preserve"><value>A few small things, just the way you like them.</value></data>
+<data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
+<data name="Settings_Categories" xml:space="preserve"><value>Your categories</value></data>
+<data name="Settings_CategoriesHint" xml:space="preserve"><value>Five familiar places, plus any you’d like to add.</value></data>
+<data name="Settings_Data" xml:space="preserve"><value>Your thoughts, your device</value></data>
+<data name="Settings_DeleteAll" xml:space="preserve"><value>Delete all my data</value></data>
+<data name="Settings_Ai" xml:space="preserve"><value>AI sorting</value></data>
+<data name="Settings_ConsentOn" xml:space="preserve"><value>You’ve allowed AI to help sort new braindumps.</value></data>
+<data name="Settings_ConsentOff" xml:space="preserve"><value>You’ll be asked before a braindump is sent for AI sorting.</value></data>
+<data name="Settings_Revoke" xml:space="preserve"><value>Withdraw permission</value></data>
+<data name="Settings_About" xml:space="preserve"><value>Made for a little peace of mind.</value></data>
+<data name="Settings_Contact" xml:space="preserve"><value>Get in touch</value></data>
+<data name="Settings_Version" xml:space="preserve"><value>Test version 0.1.0</value></data>
+<data name="Settings_Rename" xml:space="preserve"><value>Rename</value></data>
+<data name="Access_Title" xml:space="preserve"><value>A little space, whenever you need it.</value></data>
+<data name="Access_Text" xml:space="preserve"><value>Your first three sorted braindumps are free. Unlock more for a one-time payment.</value></data>
+<data name="Access_Buy" xml:space="preserve"><value>Unlock for €4.99</value></data>
+<data name="Access_Key" xml:space="preserve"><value>Your license key</value></data>
+<data name="Access_Verify" xml:space="preserve"><value>Verify license</value></data>
+<data name="Access_Unlocked" xml:space="preserve"><value>You’re all set. Space for your next thought.</value></data>
+<data name="Access_Test" xml:space="preserve"><value>You have full access during testing.</value></data>
+<data name="Access_NotConfigured" xml:space="preserve"><value>Purchasing is not available yet.</value></data>
+<data name="Access_Count" xml:space="preserve"><value>of 3 free braindumps used</value></data>
+<data name="Privacy_Title" xml:space="preserve"><value>Your privacy</value></data>
+<data name="Privacy_Intro" xml:space="preserve"><value>Nagapie keeps your list in this browser. This test version has no accounts, analytics, cloud sync, or automatic backup.</value></data>
+<data name="Privacy_Ai" xml:space="preserve"><value>If you agree to automatic sorting, your text and category names pass through our API to the configured AI provider. Nagapie does not keep dump content in its server database or application logs. Technical request metadata may be logged. You can withdraw permission in Settings.</value></data>
+<data name="Privacy_Test" xml:space="preserve"><value>Before public launch, the operator’s identity, provider retention and training terms, processing region, and log retention must be finalized. This page describes the test build; it is not a completed production privacy notice.</value></data>
+<data name="Terms_Title" xml:space="preserve"><value>About using Nagapie</value></data>
+<data name="Terms_Text" xml:space="preserve"><value>Nagapie helps you capture and organize thoughts. AI suggestions can be wrong; review them before saving. Time buckets do not move automatically, and the app does not send reminders. Keep a separate copy of anything you cannot afford to lose.</value></data>
+<data name="Terms_Test" xml:space="preserve"><value>This is a test build. Production terms, business details, purchase conditions, and tax information still need to be completed before sales begin.</value></data>
+<data name="Error_STORAGE" xml:space="preserve"><value>Your changes couldn’t be saved. Your text is still here. Check available browser storage and try again.</value></data>
+<data name="Error_STORAGE_INVALID" xml:space="preserve"><value>We couldn’t safely read this browser’s saved data. It hasn’t been overwritten. Contact support before resetting if you need to recover it.</value></data>
+<data name="Error_AI_NOT_CONFIGURED" xml:space="preserve"><value>Automatic sorting isn’t connected yet. Keep this as one thought, or try again once it’s available.</value></data>
+<data name="Error_AI_UNAVAILABLE" xml:space="preserve"><value>Sorting is unavailable right now. Your words are safe here. Try again or keep them as one thought.</value></data>
+<data name="Error_AI_TIMEOUT" xml:space="preserve"><value>Sorting took a little too long. Try again or keep this as one thought.</value></data>
+<data name="Error_AI_INVALID_OUTPUT" xml:space="preserve"><value>We couldn’t get a reliable result. Your words are unchanged. Please try again.</value></data>
+<data name="Error_RATE_LIMITED" xml:space="preserve"><value>A little pause. Please try again in a minute.</value></data>
+<data name="Error_INVALID_INPUT" xml:space="preserve"><value>Check your text and try again. A braindump can contain up to 5,000 characters.</value></data>
+<data name="Error_CATEGORY_INVALID" xml:space="preserve"><value>Use a unique category name of 1–30 characters. You can have up to 25 categories.</value></data>
+<data name="Error_LICENSE_INVALID" xml:space="preserve"><value>That license key wasn’t recognized. Please check it and try again.</value></data>
+<data name="Error_LICENSE_UNAVAILABLE" xml:space="preserve"><value>License verification is unavailable. Please try again later.</value></data>
+<data name="Error_UNEXPECTED_ERROR" xml:space="preserve"><value>Something didn’t work. Please try again.</value></data>
+<data name="Error_OFFLINE" xml:space="preserve"><value>Internet is needed to sort your braindump. Your text stays on this device.</value></data>
+<data name="Error_CALENDAR" xml:space="preserve"><value>Choose an end time after the start time.</value></data>
+<data name="Error_MERGE" xml:space="preserve"><value>These thoughts are too long to merge.</value></data>
+<data name="NotFound_Title" xml:space="preserve"><value>A little off the path.</value></data>
+<data name="NotFound_Text" xml:space="preserve"><value>This page or review isn’t here. Your saved thoughts are in your list.</value></data>
+<data name="Error_SPEECH" xml:space="preserve"><value>Speech recognition stopped. Your text is still here; you can keep typing.</value></data>
+<data name="Error_AI_AUTHENTICATION" xml:space="preserve"><value>The AI provider rejected the configured API key. Have the key in the server settings checked. Your text is still here.</value></data>
+<data name="Error_AI_ACCESS_DENIED" xml:space="preserve"><value>The AI provider denied access. Have the access permissions checked. Your text is still here.</value></data>
+<data name="Error_AI_QUOTA" xml:space="preserve"><value>The AI credit or spending limit has been reached. Have billing checked with the AI provider. Your text is still here.</value></data>
+<data name="Error_AI_RATE_LIMITED" xml:space="preserve"><value>The AI provider is receiving too many requests. Try again in a minute. Your text is still here.</value></data>
+<data name="Error_AI_MODEL" xml:space="preserve"><value>The configured AI model is unavailable for this API key. Have the model in the server settings checked. Your text is still here.</value></data>
+<data name="Error_AI_REQUEST_INVALID" xml:space="preserve"><value>The AI provider cannot process this request. Have the AI configuration checked. Your text is still here.</value></data>
+</root>

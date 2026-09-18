@@ -1,0 +1,9 @@
+@inject IStringLocalizer<AppResources> L
+<div class="steps" aria-label="Dump it, Sort it, Clear it">
+@for (var i = 0; i < 3; i++) {
+    var n = i;
+    <div class="step @(Active == n ? "active" : "") @(Active > n ? "done" : "")" aria-current="@(Active == n ? "step" : null)"><span class="step-number">@(Active > n ? "✓" : (n + 1).ToString())</span><span>@L[new[] { "Step_Dump", "Step_Sort", "Step_Clear" }[n]]</span></div>
+    @if (n < 2) { <span class="step-line"></span> }
+}
+</div>
+@code { [Parameter] public int Active { get; set; } }

@@ -1,0 +1,45 @@
+@page "/list"
+@inherits PageBase
+<PageTitle>Nagapie — @L["Nav_List"]</PageTitle>
+<StepIndicator Active="2"/>
+<section class="page-heading list-heading"><div><h1>@L["List_Title"]</h1><p class="lead">@L["List_Subtitle"]</p></div><a class="button secondary" href="/"><Icon Name="plus"/>@L["List_New"]</a></section>
+<div class="list-toolbar"><label class="sr-only" for="category-filter">@L["Category_Label"]</label><select id="category-filter" @bind="filter"><option value="">@L["Category_All"]</option><option value="unsorted">@L["Category_None"]</option>@foreach(var c in State.Categories) { <option value="@c.Id">@CategoryName(c)</option> }</select><span class="quiet-note"><Icon Name="lock" Size="14"/>@L["Dump_Local"]</span></div>
+<ErrorMessage Code="@Error"/>
+@if (State.Store.Items.Count == 0) { <section class="empty-state"><Botanical/><h2>@L["List_EmptyAll"]</h2><p>@L["List_EmptyDetail"]</p><a class="button primary" href="/">@L["List_New"]<Icon Name="arrow"/></a></section> }
+else {
+ @foreach (var horizon in AppState.Horizons) {
+    var items = Filtered.Where(i => !i.IsCompleted && i.PlanningHorizon == horizon).OrderByDescending(i => i.CreatedAtUtc).ToList();
+    <section class="horizon-section"><div class="horizon-heading"><div class="horizon-title"><Icon Name="@(horizon == "today" ? "sun" : horizon == "next-week" ? "calendar" : "leaf")"/><h2>@L["Horizon_" + horizon]</h2><span class="count">@items.Count</span></div><p>@L[horizon == "today" ? "Horizon_TodayHint" : horizon == "next-week" ? "Horizon_WeekHint" : "Horizon_LaterHint"]</p></div>
+    @if (items.Count == 0) { <div class="empty-bucket">@L["List_Empty"]</div> }
+    @foreach (var item in items) { @ItemCard(item) }
+    </section>
+ }
+ <details class="archive"><summary>@L["List_Archive"] <span class="count">@Filtered.Count(i => i.IsCompleted)</span></summary>@foreach(var item in Filtered.Where(i => i.IsCompleted).OrderByDescending(i => i.CompletedAtUtc)) { @ItemCard(item) }</details>
+}
+@if (undoItem is not null) { <div class="toast" role="status"><Icon Name="check"/><span>@L["List_Feedback"]</span><button @onclick="Undo">@L["List_Undo"]</button><button class="icon-button" aria-label="@L["Common_Close"]" @onclick="() => undoItem = null"><Icon Name="close" Size="16"/></button></div> }
+@if (editing is not null) { <Modal Title="@L["List_Edit"]" Closed="() => editing = null"><ItemFields Item="editing"/><ErrorMessage Code="@Error"/><div class="modal-actions"><button class="button secondary" autofocus @onclick="() => editing = null">@L["Common_Cancel"]</button><button class="button primary" disabled="@Busy" @onclick="SaveEdit">@L["Common_Save"]</button></div></Modal> }
+@if (deleting is not null) { <Modal Title="@L["Confirm_Title"]" Closed="() => deleting = null"><p>@L["Confirm_Text"]</p><blockquote>@deleting.Text</blockquote><ErrorMessage Code="@Error"/><div class="modal-actions"><button class="button secondary" autofocus @onclick="() => deleting = null">@L["Common_Cancel"]</button><button class="button danger" disabled="@Busy" @onclick="Delete">@L["Common_Delete"]</button></div></Modal> }
+@if (calendar is not null) { <CalendarDialog Item="calendar" Closed="() => calendar = null"/> }
+@code {
+ string filter = "";
+ BrainDumpItem? editing, deleting, calendar, undoItem;
+ IEnumerable<BrainDumpItem> Filtered => State.Store.Items.Where(i => filter == "" || (filter == "unsorted" ? i.CategoryId is null : i.CategoryId?.ToString() == filter));
+ RenderFragment ItemCard(BrainDumpItem item) => @<article class="thought-card @(item.IsCompleted ? "completed" : "")">
+    @if (!item.IsCompleted) { <button class="complete-button" disabled="@Busy" aria-label="@L["List_Complete"]" @onclick='() => Archive(item, "completed")'><Icon Name="check" Size="17"/></button> }
+    else { <span class="archive-icon"><Icon Name="@(item.CompletionReason == "let-go" ? "leaf" : "check")"/></span> }
+    <div class="thought-content"><p>@item.Text</p><span class="category-tag @(State.Categories.FirstOrDefault(c => c.Id == item.CategoryId)?.ColorToken ?? "stone")">@CategoryName(item.CategoryId)</span>@if (item.IsCompleted) { <span class="completion-label">@L[item.CompletionReason == "let-go" ? "List_Released" : "List_Done"]</span> }</div>
+    <div class="thought-actions">
+    @if (item.IsCompleted) { <button class="text-button" disabled="@Busy" @onclick="() => Restore(item)">@L["List_Restore"]</button> }
+    else { <button class="icon-button" title="@L["List_Edit"]" aria-label="@L["List_Edit"]" @onclick="() => editing = item with { }"><Icon Name="edit" Size="17"/></button><button class="icon-button" title="@L["Calendar_Export"]" aria-label="@L["Calendar_Export"]" @onclick="() => calendar = item"><Icon Name="calendar" Size="17"/></button><button class="icon-button" title="@L["List_LetGo"]" aria-label="@L["List_LetGo"]" disabled="@Busy" @onclick='() => Archive(item, "let-go")'><Icon Name="leaf" Size="17"/></button> }
+    <button class="icon-button" title="@L["List_Delete"]" aria-label="@L["List_Delete"]" @onclick="() => deleting = item"><Icon Name="trash" Size="17"/></button>
+    </div>
+ </article>;
+ Task Archive(BrainDumpItem item, string reason) => Run(async () => { await State.ArchiveAsync(item, reason); undoItem = item; });
+ Task Restore(BrainDumpItem item) => Run(() => State.RestoreAsync(item));
+ Task Undo() => Run(async () => { if (undoItem is not null) { await State.UpdateAsync(undoItem); undoItem = null; } });
+ Task Delete() => Run(async () => { await State.DeleteAsync(deleting!.Id); if (undoItem?.Id == deleting.Id) undoItem = null; deleting = null; });
+ Task SaveEdit() => Run(async () => {
+    if (State.Categories.Any(c => c.Id == editing!.CategoryId && c.Key == "let-go")) editing = editing! with { CompletionReason = "let-go", CompletedAtUtc = DateTimeOffset.UtcNow };
+    await State.UpdateAsync(editing!); editing = null;
+ });
+}

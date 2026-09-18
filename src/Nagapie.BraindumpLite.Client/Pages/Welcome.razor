@@ -1,0 +1,17 @@
+@page "/welcome"
+@inherits PageBase
+<PageTitle>Nagapie</PageTitle>
+<div class="welcome">
+    <div class="welcome-language"><button class="text-button @(State.Settings.Language == "nl-NL" ? "selected" : "")" @onclick='() => Language("nl-NL")'>Nederlands</button><span>/</span><button class="text-button @(State.Settings.Language == "en-US" ? "selected" : "")" @onclick='() => Language("en-US")'>English</button></div>
+    <Botanical/>
+    <p class="eyebrow">@L["Welcome_Eyebrow"]</p><h1>@L["Welcome_Title"]</h1><p class="lead">@L["Welcome_Text"]</p>
+    <div class="welcome-steps">@foreach (var step in new[] { ("01", "Step_Dump", "Welcome_Dump"), ("02", "Step_Sort", "Welcome_Sort"), ("03", "Step_Clear", "Welcome_Clear") }) { <div><span>@step.Item1</span><h3>@L[step.Item2]</h3><p>@L[step.Item3]</p></div> }</div>
+    <div class="notice local-notice"><Icon Name="lock"/><div><strong>@L["Welcome_LocalTitle"]</strong><p>@L["Welcome_LocalText"]</p><label class="checkbox"><input type="checkbox" @bind="accepted"/>@L["Welcome_Acknowledge"]</label></div></div>
+    <ErrorMessage Code="@Error"/>
+    <button class="button primary" disabled="@(!accepted || Busy)" @onclick="Start">@L["Welcome_Start"]<Icon Name="arrow"/></button>
+</div>
+@code {
+ bool accepted;
+ Task Language(string language) => Run(() => State.SaveSettingsAsync(State.Settings with { Language = language }));
+ Task Start() => Run(async () => { await State.SaveSettingsAsync(State.Settings with { HasCompletedOnboarding = true }); Nav.NavigateTo("/"); });
+}

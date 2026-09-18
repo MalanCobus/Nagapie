@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+<resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+<resheader name="version"><value>2.0</value></resheader>
+<data name="Nav_Dump" xml:space="preserve"><value>Mijn braindump</value></data>
+<data name="Nav_List" xml:space="preserve"><value>Mijn lijst</value></data>
+<data name="Nav_Settings" xml:space="preserve"><value>Instellingen</value></data>
+<data name="Nav_Privacy" xml:space="preserve"><value>Privacy</value></data>
+<data name="Nav_Terms" xml:space="preserve"><value>Voorwaarden</value></data>
+<data name="Nav_Skip" xml:space="preserve"><value>Naar de inhoud</value></data>
+<data name="Nav_Tagline" xml:space="preserve"><value>Een beetje ruimte in je hoofd.</value></data>
+<data name="Dump_Eyebrow" xml:space="preserve"><value>MINDER IN JE HOOFD. MEER RUIMTE VOOR JOU.</value></data>
+<data name="Dump_Title" xml:space="preserve"><value>Laat het maar los.</value></data>
+<data name="Dump_Subtitle" xml:space="preserve"><value>Taken, gedachten, kleine dingen die blijven hangen. Zet ze hier neer, precies zoals ze komen.</value></data>
+<data name="Dump_Label" xml:space="preserve"><value>Wat houdt je bezig?</value></data>
+<data name="Dump_Placeholder" xml:space="preserve"><value>Ik moet die afspraak nog maken, ik heb een idee dat ik niet wil vergeten, en ik denk nog steeds aan…</value></data>
+<data name="Dump_Hint" xml:space="preserve"><value>Het hoeft niet netjes. Begin gewoon ergens.</value></data>
+<data name="Dump_Sort" xml:space="preserve"><value>Help me ordenen</value></data>
+<data name="Dump_SaveOne" xml:space="preserve"><value>Bewaar als één gedachte</value></data>
+<data name="Dump_Saved" xml:space="preserve"><value>Concept opgeslagen op dit apparaat</value></data>
+<data name="Dump_Saving" xml:space="preserve"><value>Je concept wordt opgeslagen…</value></data>
+<data name="Dump_Empty" xml:space="preserve"><value>Een klein begin is genoeg.</value></data>
+<data name="Dump_Example" xml:space="preserve"><value>Een beetje inspiratie nodig?</value></data>
+<data name="Dump_ExampleText" xml:space="preserve"><value>Vandaag de tandarts bellen. Volgende week wil ik een weekendje weg plannen. Een idee: een fotoboek voor mama’s verjaardag. Ik wil het piekeren over dat ongemakkelijke gesprek loslaten.</value></data>
+<data name="Dump_UseExample" xml:space="preserve"><value>Probeer een voorbeeld</value></data>
+<data name="Dump_Resume" xml:space="preserve"><value>Er staan gedachten klaar om te bekijken.</value></data>
+<data name="Dump_ResumeAction" xml:space="preserve"><value>Verder met ordenen</value></data>
+<data name="Dump_Processing" xml:space="preserve"><value>Even wat ruimte maken…</value></data>
+<data name="Dump_ProcessingDetail" xml:space="preserve"><value>Je gedachten worden rustig gesorteerd. Jij beslist wat klopt.</value></data>
+<data name="Dump_Cancel" xml:space="preserve"><value>Terug naar schrijven</value></data>
+<data name="Dump_AiUnavailable" xml:space="preserve"><value>Automatisch ordenen is nog niet aangesloten. Je kunt je gedachten hier wel bewaren.</value></data>
+<data name="Dump_Local" xml:space="preserve"><value>Op dit apparaat bewaard</value></data>
+<data name="Dump_Control" xml:space="preserve"><value>Jij houdt de regie</value></data>
+<data name="Dump_Prompt1" xml:space="preserve"><value>Iets om te doen</value></data>
+<data name="Dump_Prompt2" xml:space="preserve"><value>Een idee om te bewaren</value></data>
+<data name="Dump_Prompt3" xml:space="preserve"><value>Iets om los te laten</value></data>
+<data name="Step_Dump" xml:space="preserve"><value>Dump it</value></data>
+<data name="Step_Sort" xml:space="preserve"><value>Sort it</value></data>
+<data name="Step_Clear" xml:space="preserve"><value>Clear it</value></data>
+<data name="Welcome_Eyebrow" xml:space="preserve"><value>WELKOM BIJ NAGAPIE</value></data>
+<data name="Welcome_Title" xml:space="preserve"><value>Je hoofd mag even ademhalen.</value></data>
+<data name="Welcome_Text" xml:space="preserve"><value>Een rustige plek voor alles wat je bezighoudt. Schrijf het op, schep wat orde en maak ruimte voor wat telt.</value></data>
+<data name="Welcome_Dump" xml:space="preserve"><value>Haal het uit je hoofd.</value></data>
+<data name="Welcome_Sort" xml:space="preserve"><value>Geef elke gedachte een plek.</value></data>
+<data name="Welcome_Clear" xml:space="preserve"><value>Doe het, bewaar het of laat het los.</value></data>
+<data name="Welcome_LocalTitle" xml:space="preserve"><value>Even over je gedachten</value></data>
+<data name="Welcome_LocalText" xml:space="preserve"><value>Je lijst staat in deze browser op dit apparaat. Als je browsergegevens wist, verdwijnt je lijst. Er is geen account, cloudsynchronisatie of automatische back-up.</value></data>
+<data name="Welcome_Acknowledge" xml:space="preserve"><value>Ik begrijp hoe mijn gedachten worden bewaard.</value></data>
+<data name="Welcome_Start" xml:space="preserve"><value>Maak een beetje ruimte</value></data>
+<data name="Review_Title" xml:space="preserve"><value>Een plek voor elke gedachte.</value></data>
+<data name="Review_Subtitle" xml:space="preserve"><value>Een beetje overzicht. Pas alles aan tot het voor jou klopt.</value></data>
+<data name="Review_Save" xml:space="preserve"><value>Bewaar in mijn lijst</value></data>
+<data name="Review_Merge" xml:space="preserve"><value>Samenvoegen met volgende</value></data>
+<data name="Review_Remove" xml:space="preserve"><value>Gedachte verwijderen</value></data>
+<data name="Review_Back" xml:space="preserve"><value>Terug naar mijn braindump</value></data>
+<data name="Review_Empty" xml:space="preserve"><value>Nog geen gedachten om te bekijken.</value></data>
+<data name="Review_LetGo" xml:space="preserve"><value>Gedachten met Loslaten gaan naar je archief. Je kunt ze altijd terugzetten.</value></data>
+<data name="Review_Original" xml:space="preserve"><value>Je oorspronkelijke tekst</value></data>
+<data name="Review_Count" xml:space="preserve"><value>gedachten om te bekijken</value></data>
+<data name="Category_do" xml:space="preserve"><value>Doen</value></data>
+<data name="Category_plan" xml:space="preserve"><value>Plannen</value></data>
+<data name="Category_idea" xml:space="preserve"><value>Idee</value></data>
+<data name="Category_remember" xml:space="preserve"><value>Onthouden</value></data>
+<data name="Category_let-go" xml:space="preserve"><value>Loslaten</value></data>
+<data name="Category_None" xml:space="preserve"><value>Niet gesorteerd</value></data>
+<data name="Category_Label" xml:space="preserve"><value>Categorie</value></data>
+<data name="Category_All" xml:space="preserve"><value>Alle categorieën</value></data>
+<data name="Category_New" xml:space="preserve"><value>Naam nieuwe categorie</value></data>
+<data name="Category_Add" xml:space="preserve"><value>Categorie toevoegen</value></data>
+<data name="Category_Color" xml:space="preserve"><value>Kleur</value></data>
+<data name="Category_sage" xml:space="preserve"><value>Salie</value></data>
+<data name="Category_blue" xml:space="preserve"><value>Blauw</value></data>
+<data name="Category_yellow" xml:space="preserve"><value>Geel</value></data>
+<data name="Category_terra" xml:space="preserve"><value>Terracotta</value></data>
+<data name="Category_stone" xml:space="preserve"><value>Steen</value></data>
+<data name="Horizon_today" xml:space="preserve"><value>Vandaag</value></data>
+<data name="Horizon_next-week" xml:space="preserve"><value>Volgende week</value></data>
+<data name="Horizon_later" xml:space="preserve"><value>Later</value></data>
+<data name="Horizon_Label" xml:space="preserve"><value>Wanneer</value></data>
+<data name="Horizon_TodayHint" xml:space="preserve"><value>Wat nu je aandacht mag krijgen.</value></data>
+<data name="Horizon_WeekHint" xml:space="preserve"><value>Een plekje voor de komende dagen.</value></data>
+<data name="Horizon_LaterHint" xml:space="preserve"><value>Hier bewaard, tot jij eraan toe bent.</value></data>
+<data name="List_Title" xml:space="preserve"><value>Een beetje meer rust.</value></data>
+<data name="List_Subtitle" xml:space="preserve"><value>Alles heeft een plek. Eén gedachte tegelijk is genoeg.</value></data>
+<data name="List_New" xml:space="preserve"><value>Nieuwe braindump</value></data>
+<data name="List_Empty" xml:space="preserve"><value>Hier is het leeg. Ruimte om te ademen.</value></data>
+<data name="List_EmptyAll" xml:space="preserve"><value>Hier krijgen je gedachten een plek.</value></data>
+<data name="List_EmptyDetail" xml:space="preserve"><value>Begin met wat je bezighoudt. Van daaruit gaan we verder.</value></data>
+<data name="List_Archive" xml:space="preserve"><value>Afgerond &amp; losgelaten</value></data>
+<data name="List_Complete" xml:space="preserve"><value>Markeer als afgerond</value></data>
+<data name="List_LetGo" xml:space="preserve"><value>Loslaten</value></data>
+<data name="List_Restore" xml:space="preserve"><value>Terugzetten</value></data>
+<data name="List_Edit" xml:space="preserve"><value>Gedachte bewerken</value></data>
+<data name="List_Delete" xml:space="preserve"><value>Definitief verwijderen</value></data>
+<data name="List_Done" xml:space="preserve"><value>Afgerond</value></data>
+<data name="List_Released" xml:space="preserve"><value>Losgelaten</value></data>
+<data name="List_Feedback" xml:space="preserve"><value>Weer een beetje lichter.</value></data>
+<data name="List_Undo" xml:space="preserve"><value>Ongedaan maken</value></data>
+<data name="Common_Save" xml:space="preserve"><value>Wijzigingen opslaan</value></data>
+<data name="Common_Cancel" xml:space="preserve"><value>Annuleren</value></data>
+<data name="Common_Close" xml:space="preserve"><value>Sluiten</value></data>
+<data name="Common_Delete" xml:space="preserve"><value>Verwijderen</value></data>
+<data name="Common_Back" xml:space="preserve"><value>Terug</value></data>
+<data name="Common_Loading" xml:space="preserve"><value>Even ruimte maken…</value></data>
+<data name="Common_Retry" xml:space="preserve"><value>Opnieuw proberen</value></data>
+<data name="Confirm_Title" xml:space="preserve"><value>Deze gedachte voorgoed verwijderen?</value></data>
+<data name="Confirm_Text" xml:space="preserve"><value>Dit verwijdert de gedachte definitief. Je kunt dit niet ongedaan maken.</value></data>
+<data name="Confirm_AllTitle" xml:space="preserve"><value>Alle Nagapie-gegevens verwijderen?</value></data>
+<data name="Confirm_AllText" xml:space="preserve"><value>Je gedachten, concept, categorieën en instellingen worden uit deze browser verwijderd. Bewaar je licentiesleutel om opnieuw te ontgrendelen.</value></data>
+<data name="Consent_Title" xml:space="preserve"><value>Een beetje hulp bij het ordenen</value></data>
+<data name="Consent_Text" xml:space="preserve"><value>Je volledige braindump en categorienamen worden naar {0} gestuurd voor suggesties voor gedachten, categorieën en tijdvakken. Nagapie bewaart die inhoud niet in een serverdatabase of gewone logs. Je opgeslagen lijst blijft hier.</value></data>
+<data name="Consent_Provider" xml:space="preserve"><value>Lees de privacyinformatie van de aanbieder</value></data>
+<data name="Consent_Agree" xml:space="preserve"><value>Akkoord en ordenen</value></data>
+<data name="Consent_Without" xml:space="preserve"><value>Doorgaan zonder AI</value></data>
+<data name="Speech_Start" xml:space="preserve"><value>Spreek het uit</value></data>
+<data name="Speech_Stop" xml:space="preserve"><value>Stop opnemen</value></data>
+<data name="Speech_Title" xml:space="preserve"><value>Voordat je begint</value></data>
+<data name="Speech_Notice" xml:space="preserve"><value>Spraakherkenning kan audio naar je browser- of apparaatleverancier sturen. Nagapie bewaart geen audio. De opname stopt na vijf minuten.</value></data>
+<data name="Speech_Agree" xml:space="preserve"><value>Begin met spreken</value></data>
+<data name="Speech_Listening" xml:space="preserve"><value>Ik luister… neem je tijd.</value></data>
+<data name="Speech_Error" xml:space="preserve"><value>Spraakherkenning is gestopt. Je tekst staat er nog; je kunt verder typen.</value></data>
+<data name="Calendar_Title" xml:space="preserve"><value>Geef het een moment in je dag</value></data>
+<data name="Calendar_Export" xml:space="preserve"><value>Naar agenda</value></data>
+<data name="Calendar_Date" xml:space="preserve"><value>Datum</value></data>
+<data name="Calendar_AllDay" xml:space="preserve"><value>Hele dag</value></data>
+<data name="Calendar_Start" xml:space="preserve"><value>Begintijd</value></data>
+<data name="Calendar_End" xml:space="preserve"><value>Eindtijd</value></data>
+<data name="Calendar_Download" xml:space="preserve"><value>Download agenda-afspraak</value></data>
+<data name="Calendar_Hint" xml:space="preserve"><value>Download een afspraak voor Apple Agenda, Google Calendar of Outlook. Er wordt niets automatisch toegevoegd.</value></data>
+<data name="Settings_Title" xml:space="preserve"><value>Maak het jouw plek.</value></data>
+<data name="Settings_Subtitle" xml:space="preserve"><value>Een paar kleine dingen, precies zoals jij ze wilt.</value></data>
+<data name="Settings_Language" xml:space="preserve"><value>Taal</value></data>
+<data name="Settings_Categories" xml:space="preserve"><value>Jouw categorieën</value></data>
+<data name="Settings_CategoriesHint" xml:space="preserve"><value>Vijf vaste plekken, plus wat je zelf wilt toevoegen.</value></data>
+<data name="Settings_Data" xml:space="preserve"><value>Jouw gedachten, jouw apparaat</value></data>
+<data name="Settings_DeleteAll" xml:space="preserve"><value>Wis al mijn gegevens</value></data>
+<data name="Settings_Ai" xml:space="preserve"><value>AI-ordening</value></data>
+<data name="Settings_ConsentOn" xml:space="preserve"><value>Je hebt toestemming gegeven om nieuwe braindumps met AI te ordenen.</value></data>
+<data name="Settings_ConsentOff" xml:space="preserve"><value>We vragen toestemming voordat een braindump met AI wordt geordend.</value></data>
+<data name="Settings_Revoke" xml:space="preserve"><value>Toestemming intrekken</value></data>
+<data name="Settings_About" xml:space="preserve"><value>Gemaakt voor een beetje rust.</value></data>
+<data name="Settings_Contact" xml:space="preserve"><value>Neem contact op</value></data>
+<data name="Settings_Version" xml:space="preserve"><value>Testversie 0.1.0</value></data>
+<data name="Settings_Rename" xml:space="preserve"><value>Hernoemen</value></data>
+<data name="Access_Title" xml:space="preserve"><value>Een beetje ruimte, wanneer jij wilt.</value></data>
+<data name="Access_Text" xml:space="preserve"><value>Je eerste drie geordende braindumps zijn gratis. Ontgrendel meer met een eenmalige betaling.</value></data>
+<data name="Access_Buy" xml:space="preserve"><value>Ontgrendel voor € 4,99</value></data>
+<data name="Access_Key" xml:space="preserve"><value>Je licentiesleutel</value></data>
+<data name="Access_Verify" xml:space="preserve"><value>Controleer licentie</value></data>
+<data name="Access_Unlocked" xml:space="preserve"><value>Helemaal klaar. Ruimte voor je volgende gedachte.</value></data>
+<data name="Access_Test" xml:space="preserve"><value>Je hebt tijdens het testen volledige toegang.</value></data>
+<data name="Access_NotConfigured" xml:space="preserve"><value>Kopen is nog niet beschikbaar.</value></data>
+<data name="Access_Count" xml:space="preserve"><value>van 3 gratis braindumps gebruikt</value></data>
+<data name="Privacy_Title" xml:space="preserve"><value>Jouw privacy</value></data>
+<data name="Privacy_Intro" xml:space="preserve"><value>Nagapie bewaart je lijst in deze browser. Deze testversie heeft geen accounts, analytics, cloudsynchronisatie of automatische back-up.</value></data>
+<data name="Privacy_Ai" xml:space="preserve"><value>Als je instemt met automatisch ordenen, gaan je tekst en categorienamen via onze API naar de ingestelde AI-aanbieder. Nagapie bewaart de inhoud niet in een serverdatabase of applicatielogs. Technische verzoekgegevens kunnen worden gelogd. Je kunt toestemming intrekken in Instellingen.</value></data>
+<data name="Privacy_Test" xml:space="preserve"><value>Vóór publieke lancering moeten bedrijfsgegevens, bewaartermijnen en trainingsvoorwaarden van de aanbieder, verwerkingsregio en logretentie worden ingevuld. Deze pagina beschrijft de testversie; het is nog geen definitieve privacyverklaring.</value></data>
+<data name="Terms_Title" xml:space="preserve"><value>Over het gebruik van Nagapie</value></data>
+<data name="Terms_Text" xml:space="preserve"><value>Nagapie helpt je gedachten vast te leggen en te ordenen. AI-suggesties kunnen onjuist zijn; controleer ze voordat je opslaat. Tijdvakken veranderen niet automatisch en de app verstuurt geen herinneringen. Bewaar belangrijke informatie ook ergens anders.</value></data>
+<data name="Terms_Test" xml:space="preserve"><value>Dit is een testversie. Definitieve voorwaarden, bedrijfsgegevens, aankoopvoorwaarden en belastinginformatie moeten vóór verkoop worden ingevuld.</value></data>
+<data name="Error_STORAGE" xml:space="preserve"><value>Je wijzigingen konden niet worden opgeslagen. Je tekst staat er nog. Controleer de beschikbare browseropslag en probeer opnieuw.</value></data>
+<data name="Error_STORAGE_INVALID" xml:space="preserve"><value>We konden de opgeslagen gegevens niet veilig lezen. Ze zijn niet overschreven. Neem contact op voordat je wist als je gegevens wilt herstellen.</value></data>
+<data name="Error_AI_NOT_CONFIGURED" xml:space="preserve"><value>Automatisch ordenen is nog niet aangesloten. Bewaar dit als één gedachte of probeer het later opnieuw.</value></data>
+<data name="Error_AI_UNAVAILABLE" xml:space="preserve"><value>Ordenen is nu niet beschikbaar. Je tekst blijft hier staan. Probeer opnieuw of bewaar alles als één gedachte.</value></data>
+<data name="Error_AI_TIMEOUT" xml:space="preserve"><value>Het ordenen duurde te lang. Probeer opnieuw of bewaar dit als één gedachte.</value></data>
+<data name="Error_AI_INVALID_OUTPUT" xml:space="preserve"><value>We kregen geen betrouwbaar resultaat. Je tekst is ongewijzigd. Probeer het opnieuw.</value></data>
+<data name="Error_RATE_LIMITED" xml:space="preserve"><value>Even pauze. Probeer het over een minuut opnieuw.</value></data>
+<data name="Error_INVALID_INPUT" xml:space="preserve"><value>Controleer je tekst en probeer opnieuw. Een braindump mag maximaal 5.000 tekens bevatten.</value></data>
+<data name="Error_CATEGORY_INVALID" xml:space="preserve"><value>Gebruik een unieke categorienaam van 1–30 tekens. Je kunt maximaal 25 categorieën hebben.</value></data>
+<data name="Error_LICENSE_INVALID" xml:space="preserve"><value>Die licentiesleutel is niet herkend. Controleer de sleutel en probeer opnieuw.</value></data>
+<data name="Error_LICENSE_UNAVAILABLE" xml:space="preserve"><value>Licentiecontrole is niet beschikbaar. Probeer het later opnieuw.</value></data>
+<data name="Error_UNEXPECTED_ERROR" xml:space="preserve"><value>Er ging iets mis. Probeer het opnieuw.</value></data>
+<data name="Error_OFFLINE" xml:space="preserve"><value>Internet is nodig om je braindump te ordenen. Je tekst blijft op dit apparaat bewaard.</value></data>
+<data name="Error_CALENDAR" xml:space="preserve"><value>Kies een eindtijd na de begintijd.</value></data>
+<data name="Error_MERGE" xml:space="preserve"><value>Deze gedachten zijn te lang om samen te voegen.</value></data>
+<data name="NotFound_Title" xml:space="preserve"><value>Even van het pad.</value></data>
+<data name="NotFound_Text" xml:space="preserve"><value>Deze pagina of review staat hier niet. Je opgeslagen gedachten vind je in je lijst.</value></data>
+<data name="Error_SPEECH" xml:space="preserve"><value>Spraakherkenning is gestopt. Je tekst staat er nog; je kunt verder typen.</value></data>
+<data name="Error_AI_AUTHENTICATION" xml:space="preserve"><value>De AI-provider accepteert de ingestelde API-sleutel niet. Laat de sleutel in de serverinstellingen controleren. Je tekst blijft hier staan.</value></data>
+<data name="Error_AI_ACCESS_DENIED" xml:space="preserve"><value>De AI-provider geeft geen toegang. Laat de toegangsrechten controleren. Je tekst blijft hier staan.</value></data>
+<data name="Error_AI_QUOTA" xml:space="preserve"><value>Het AI-tegoed of de bestedingslimiet is bereikt. Laat de facturering bij de AI-provider controleren. Je tekst blijft hier staan.</value></data>
+<data name="Error_AI_RATE_LIMITED" xml:space="preserve"><value>De AI-provider ontvangt te veel aanvragen. Probeer het over een minuut opnieuw. Je tekst blijft hier staan.</value></data>
+<data name="Error_AI_MODEL" xml:space="preserve"><value>Het ingestelde AI-model is niet beschikbaar voor deze API-sleutel. Laat het model in de serverinstellingen controleren. Je tekst blijft hier staan.</value></data>
+<data name="Error_AI_REQUEST_INVALID" xml:space="preserve"><value>De AI-provider kan deze aanvraag niet verwerken. Laat de AI-configuratie van de app controleren. Je tekst blijft hier staan.</value></data>
+</root>

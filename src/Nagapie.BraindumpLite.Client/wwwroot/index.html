@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#274c3a" />
+    <meta name="description" content="Nagapie — een rustige plek voor je gedachten. Dump it. Sort it. Clear it." />
+    <title>Nagapie — Braindump Lite</title>
+    <base href="/" />
+
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="icon" type="image/svg+xml" href="icon.svg" />
+    <link href="Nagapie.BraindumpLite.Client.styles.css" rel="stylesheet" />
+    <link href="manifest.webmanifest" rel="manifest" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+
+</head>
+<body>
+    <div id="app"><div class="boot"><span>nagapie.</span><div class="loading-progress-text"></div></div></div>
+    <div id="blazor-error-ui" role="alert">Er ging iets mis / Something went wrong. <a href="." class="reload">Opnieuw laden / Reload</a></div>
+    <script src="js/nagapie.js"></script>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' });</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="..\Nagapie.BraindumpLite.Contracts\Nagapie.BraindumpLite.Contracts.csproj" />
+    <ProjectReference Include="..\Nagapie.BraindumpLite.Client\Nagapie.BraindumpLite.Client.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
+  </ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>be1c8238-5870-4798-9410-d7042eeea2d9</UserSecretsId>
+  </PropertyGroup>
+</Project>

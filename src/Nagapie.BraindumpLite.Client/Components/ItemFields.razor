@@ -1,0 +1,13 @@
+@inherits PageBase
+<label class="field-label" for="@textId">@L["Dump_Label"]</label>
+<textarea id="@textId" class="item-text" maxlength="5000" @bind="Item.Text" @bind:event="oninput" @bind:after="Changed"></textarea>
+<div class="field-row">
+<label>@L["Category_Label"]<select @bind="Item.CategoryId" @bind:after="Changed"><option value="">@L["Category_None"]</option>@foreach(var c in State.Categories) { <option value="@c.Id">@CategoryName(c)</option> }</select></label>
+<label>@L["Horizon_Label"]<select @bind="Item.PlanningHorizon" @bind:after="Changed">@foreach(var h in AppState.Horizons) { <option value="@h">@L["Horizon_" + h]</option> }</select></label>
+</div>
+@code {
+ [Parameter, EditorRequired] public BrainDumpItem Item { get; set; } = default!;
+ [Parameter] public EventCallback OnChanged { get; set; }
+ private string textId = "text-" + Guid.NewGuid();
+ private Task Changed() => OnChanged.InvokeAsync();
+}

@@ -1,0 +1,37 @@
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject AppState State
+@inject IStringLocalizer<AppResources> L
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+<a class="skip-link" href="#main">@L["Nav_Skip"]</a>
+<header class="site-header">
+    <a href="/" class="brand" aria-label="Nagapie"><span class="brand-mark"><Icon Name="leaf" Size="29"/></span>nagapie<span class="brand-dot">.</span></a>
+    <nav class="top-nav">
+        <NavLink href="/" Match="NavLinkMatch.All" aria-label="@L["Nav_Dump"]"><Icon Name="edit"/><span>@L["Nav_Dump"]</span></NavLink>
+        <NavLink href="/list" aria-label="@L["Nav_List"]"><Icon Name="list"/><span>@L["Nav_List"]</span></NavLink>
+        <NavLink href="/settings" class="settings-link" aria-label="@L["Nav_Settings"]"><Icon Name="settings"/></NavLink>
+    </nav>
+</header>
+<main id="main" class="main-content">
+@if (!State.Loaded) { <div class="loading-screen"><Icon Name="leaf" Size="44"/><p>@L["Common_Loading"]</p></div> }
+else if (State.StorageFailed) {
+    <ErrorMessage Code="STORAGE_INVALID"/>
+    <a href="mailto:hello@nagapie.nl">@L["Settings_Contact"]</a>
+    <button class="button danger" @onclick="() => reset = true">@L["Settings_DeleteAll"]</button>
+    @if (reset) { <Modal Title="@L["Confirm_AllTitle"]" Closed="() => reset = false"><p>@L["Confirm_AllText"]</p><div class="modal-actions"><button class="button secondary" autofocus @onclick="() => reset = false">@L["Common_Cancel"]</button><button class="button danger" @onclick="Reset">@L["Common_Delete"]</button></div></Modal> }
+}
+else { @Body }
+</main>
+<footer class="site-footer"><span><Icon Name="leaf" Size="16"/> @L["Nav_Tagline"]</span><div><a href="/privacy">@L["Nav_Privacy"]</a><span>·</span><a href="/terms">@L["Nav_Terms"]</a></div></footer>
+@code {
+ bool reset;
+ string? renderedLocation;
+ protected override async Task OnInitializedAsync() { State.Changed += Update; await State.InitializeAsync(); }
+ void Update() => InvokeAsync(StateHasChanged);
+ protected override async Task OnAfterRenderAsync(bool firstRender) {
+    if (renderedLocation != Nav.Uri) { renderedLocation = Nav.Uri; await JS.InvokeVoidAsync("nagapie.pageTop"); }
+ }
+ async Task Reset() { try { await State.ClearAsync(); reset = false; Nav.NavigateTo("/welcome"); } catch (JSException) { } }
+ public void Dispose() => State.Changed -= Update;
+}

@@ -54,3 +54,10 @@ node tests/verify-publish.mjs http://localhost:5211
 ```
 
 The local preview for this session runs the final published output in artifacts/app on http://localhost:5211. Development restart instructions and secure AI configuration are in README.md.
+# Relational data upgrade verification
+
+- 78 .NET tests passed (24 client, 54 API/domain), including per-item concurrency, stale draft rejection, category reference cleanup, legacy import/rollback, reset isolation, client delta requests, and SQL history pagination.
+- Four service-worker tests passed; saved user data remains network-only.
+- SQL Server LocalDB upgrade check used an isolated temporary database with the previous migration and synthetic saved data. Applied the new migration and importer under `db_datareader`, `db_datawriter`, and `db_ddladmin`; verified original history, imported thought content, preserved archive, repeat-safe import, and relational updates. Temporary database was removed afterward; the user's live database was not used for this test.
+- EF reports no pending model changes; formatting verification passed. Release publishing succeeded in `artifacts/relational-release`.
+- Azure deployment remains a user action. Follow the one-time stop/publish/start cutover in `sql-and-accounts.md` to prevent old instances writing JSON during import.

@@ -5,8 +5,15 @@ namespace Nagapie.BraindumpLite.Client.Pages;
 public partial class Dumps
 {
     private List<SavedDumpResponse>? dumps;
-    protected override Task OnInitializedAsync() => Run(async () =>
+    private int page;
+    private bool hasMore;
+    protected override Task OnInitializedAsync() => LoadMoreAsync();
+    private Task LoadMoreAsync() => Run(async () =>
     {
-        dumps = await Api.GetSavedDumpsAsync();
+        var next = await Api.GetSavedDumpsAsync(page: page);
+        dumps ??= [];
+        dumps.AddRange(next);
+        hasMore = next.Count == 50;
+        page++;
     });
 }

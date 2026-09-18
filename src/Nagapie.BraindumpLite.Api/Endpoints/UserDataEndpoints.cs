@@ -15,32 +15,22 @@ public static class UserDataEndpoints
         group.MapGet("/{key}", ReadAsync);
         group.MapPut("/{key}", SaveAsync);
         group.MapDelete("/{key}", DeleteAsync);
-        group.MapGet("/history/dumps", async (HttpContext context, NagapieDbContext database) =>
+        group.MapPost("/items/changes", async (SaveThoughtsRequest request, IRelationalDataStore store, HttpContext context) =>
+            Results.Ok(await store.SaveThoughtsAsync(UserId(context), request, context.RequestAborted)));
+        group.MapPost("/categories/changes", async (SaveCategoriesRequest request, IRelationalDataStore store, HttpContext context) =>
+            Results.Ok(await store.SaveCategoriesAsync(UserId(context), request, context.RequestAborted)));
+        group.MapGet("/history/dumps", async (int? page, HttpContext context, IRelationalDataStore store) =>
         {
-            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var dumps = await database.BrainDumps.AsNoTracking()
-                .Where(dump => dump.UserId == userId)
-                .Select(dump => new SavedDumpResponse(dump.Id, dump.Text, dump.InputMethod, dump.SavedAtUtc))
-                .ToListAsync(context.RequestAborted);
-            return dumps.OrderByDescending(dump => dump.SavedAtUtc);
+            if (page is < 0 or > 100000)
+                return Results.BadRequest();
+            return Results.Ok(await store.HistoryAsync(UserId(context), page ?? 0, context.RequestAborted));
         });
-        group.MapPost("/clear", async (HttpContext context, NagapieDbContext database) =>
+        group.MapPost("/clear", async (HttpContext context, IRelationalDataStore store) =>
         {
-            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var documents = await database.UserDocuments.Where(document => document.UserId == userId)
-                .ToListAsync(context.RequestAborted);
-            foreach (var document in documents)
-            {
-                document.Json = null;
-                document.Version = Guid.NewGuid();
-            }
-            database.BrainDumps.RemoveRange(await database.BrainDumps
-                .Where(dump => dump.UserId == userId).ToListAsync(context.RequestAborted));
-            await database.SaveChangesAsync(context.RequestAborted);
+            await store.ClearAsync(UserId(context), context.RequestAborted);
             return Results.NoContent();
         });
     }
-
     private static async Task<IResult> ReadAsync(string key, IUserDocumentStore store, HttpContext context)
     {
         if (!UserDocumentValidation.Keys.Contains(key))

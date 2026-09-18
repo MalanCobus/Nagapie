@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Nagapie.BraindumpLite.Api.Data;
 
-public sealed class SqlDatabaseMigrator(NagapieDbContext database, ILogger<SqlDatabaseMigrator> logger)
+public sealed class SqlDatabaseMigrator(NagapieDbContext database, LegacyDataImporter importer, ILogger<SqlDatabaseMigrator> logger)
     : IDatabaseMigrator
 {
     public async Task MigrateAsync(CancellationToken cancellationToken = default)
@@ -12,6 +12,7 @@ public sealed class SqlDatabaseMigrator(NagapieDbContext database, ILogger<SqlDa
         {
             // EF Core acquires the migration lock and tracks already applied migrations.
             await database.Database.MigrateAsync(cancellationToken);
+            await importer.ImportAllAsync(cancellationToken);
             logger.LogInformation("Database migrations complete.");
         }
         catch (Exception)

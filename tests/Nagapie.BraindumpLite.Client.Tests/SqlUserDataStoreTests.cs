@@ -9,6 +9,59 @@ namespace Nagapie.BraindumpLite.Client.Tests;
 
 public class SqlUserDataStoreTests
 {
+    [Fact]
+    public async Task EditingOneThoughtSendsOnlyThatThoughtAndKeepsVersionsForUnchangedItems()
+    {
+        var first = new BrainDumpItem { Text = "First" };
+        var second = new BrainDumpItem { Text = "Second" };
+        var firstVersion = Guid.NewGuid();
+        var secondVersion = Guid.NewGuid();
+        var updatedVersion = Guid.NewGuid();
+        var epoch = Guid.NewGuid();
+        var requests = new List<SaveThoughtsRequest>();
+        using var http = new HttpClient(new Handler(async request =>
+        {
+            if (request.Method == HttpMethod.Get)
+                return new(HttpStatusCode.OK)
+                {
+                    Content = JsonContent.Create(new UserDocumentResponse(
+                    JsonSerializer.SerializeToElement(new ItemStore { Items = [first, second] }, JsonSerializerOptions.Web), epoch,
+                    new()
+                    {
+                        [first.Id] = firstVersion,
+                        [second.Id] = secondVersion
+                    }))
+                };
+            Assert.Equal("/api/data/items/changes", request.RequestUri!.AbsolutePath);
+            var change = (await request.Content!.ReadFromJsonAsync<SaveThoughtsRequest>())!;
+            requests.Add(change);
+            return new(HttpStatusCode.OK)
+            {
+                Content = JsonContent.Create(new UserDocumentResponse(null, epoch,
+                change.Upserts.ToDictionary(row => row.Value.Id, _ => updatedVersion)))
+            };
+        }))
+        {
+            BaseAddress = new Uri("http://localhost")
+        };
+        var storage = new SqlUserDataStore(http);
+        var initial = (await storage.ReadAsync<ItemStore>("items"))!;
+        var edited = initial with
+        {
+            Items = [first with { Text = "Edited" }, second]
+        };
+        await storage.WriteAsync("items", edited);
+        var sent = Assert.Single(requests[0].Upserts);
+        Assert.Equal(first.Id, sent.Value.Id);
+        Assert.Equal(firstVersion, sent.Version);
+        await storage.WriteAsync("items", edited with
+        {
+            Items = [edited.Items[0], second with { Text = "Other edit" }]
+        });
+        Assert.Equal(secondVersion, Assert.Single(requests[1].Upserts).Version);
+        Assert.All(requests, request => Assert.Empty(request.Deletes));
+    }
+
     private sealed class Handler(Func<HttpRequestMessage, Task<HttpResponseMessage>> send) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => send(request);

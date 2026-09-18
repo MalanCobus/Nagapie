@@ -21,4 +21,8 @@ else if (dumps is not null)
             <p style="white-space: pre-wrap">@dump.Text</p>
         </article>
     }
+    @if (hasMore)
+    {
+        <button class="button secondary" disabled="@Busy" @onclick="LoadMoreAsync">@L["Common_LoadMore"]</button>
+    }
 }

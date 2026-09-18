@@ -5,12 +5,28 @@ Nagapie now requires an account. Registration, login and logout are included. Al
 ## What is saved
 
 - Identity tables: email, password hash, account security and lockout information. Passwords are never stored as plain text.
-- `UserDocuments`: one versioned SQL row per user and data section (settings, draft/review, items/todos with commit receipts, categories, access). The section is serialized JSON in a SQL column, not a file or browser record. This preserves atomic updates to the existing item-list model. Individual todos are not separate relational rows in this version.
-- `BrainDumps`: original text and metadata for each committed braindump, with its owning user. The history page lists these originals.
+- `Thoughts`: one row per thought/todo, with typed text, category, planning horizon, completion, timestamps, source dump, and concurrency version.
+- `Categories`: one row per user-owned category. Composite foreign keys prevent thoughts linking to another user's category or dump.
+- `Drafts`: one current draft per user with typed text, ID, input method and AI status. Temporary review suggestions remain JSON until committed.
+- `BrainDumps`: original text, metadata and commit/AI receipts. Original history is sorted and paginated in SQL, 50 records per page.
+- `UserDocuments`: JSON remains for small preferences and access settings. Old items/categories/draft documents are retained only as an upgrade recovery archive and are no longer read or written by the app after import.
+- `RelationalAccounts`: records completed imports and a reset token that prevents stale clients restoring cleared data.
 
 Every query takes its owner from the authenticated server identity. The browser cannot choose another owner. Mutations require an antiforgery token. An account header must match the authenticated identity, so a tab opened under a different account cannot silently read or save under the newly signed-in account.
 
-Version tokens reject stale writes with a conflict message. Reload to see another device's changes; there is no live collaboration or offline save queue. Delete-all clears only the signed-in user's data, including original dumps, while keeping the account. Versioned tombstones prevent stale edits from resurrecting deleted sections.
+Each thought/category has its own version. The client sends only changed/deleted rows: two devices editing different thoughts do not conflict simply because they loaded the same list. Same-row stale writes are rejected. SQL transactions coordinate writes for each user; category deletion clears thought and draft references atomically. Reload to see another device's changes; there is no live collaboration or offline queue. The current list screen still loads all of a user's thoughts (up to the existing 5,000-item limit); the relational schema now supports future filtered/paginated list endpoints.
+
+Delete-all clears only the signed-in user's content, including original dumps and the legacy JSON archive, while keeping the account. Reset/version tokens prevent stale edits from restoring that content.
+
+## Publishing the relational upgrade
+
+1. Confirm a usable Azure SQL restore point/backup before upgrading. Stop Nagapie in Azure App Service so the old application cannot write JSON during the import. Stop any other instance connected to this database too.
+2. Publish the API from Visual Studio, then start the App Service. Keep the existing SQL connection and `nagapie_app` permissions; no new SQL script is needed.
+3. Startup applies the additive `RelationalUserData` schema migration, then imports each existing account in a transaction before accepting traffic. Originals, IDs, timestamps, completion state and receipts are retained. Import markers make a restart safe. Invalid data stops startup and leaves that account's originals untouched; do not bypass the failure by deleting data.
+4. Close existing Nagapie browser tabs and reopen the website so the PWA loads the new client. Old whole-list write requests are rejected rather than silently replacing relational rows.
+5. Check a previous account's items, categories, draft and dump history; save a change and sign in again.
+
+Some early versions did not keep original dump text. Those source IDs become explicitly marked placeholder dump rows; no original text is invented, and placeholders are excluded from original history. The archive is a recovery copy, not a live backup: new relational changes are not written back into it. Do not roll back to the JSON-based app or run the migration's `Down` method after users start editing. Plan removal of the archive in a later reviewed migration after confirming the conversion. Individual item deletion does not rewrite the historical archive; delete-all clears it.
 
 The browser still uses session/security cookies and may cache public app files. Neither contains saved thoughts. Unsaved text exists only in the current page's memory and is lost if the page closes before a successful save.
 
@@ -71,4 +87,4 @@ Registration accepts an email and a 12–128 character password. Five failed pas
 
 Email verification, forgotten-password email delivery, account deletion and MFA are not implemented in this iteration. Configure an email provider and add verification/recovery before a wider public account launch. The existing optional trial counter remains a soft application limit; this change does not turn licensing into a fraud-resistant billing system.
 
-Automated integration tests use a relational SQLite database to exercise registration, cookies, CSRF, ownership, lockout, persistence and concurrency. The migration was also applied to actual SQL Server LocalDB, and the browser save/reload flow was exercised against it.
+Automated integration tests use SQLite for registration, cookies, CSRF, ownership, row concurrency, category deletion, draft conflicts, legacy import/rollback and history paging. The relational upgrade has also been exercised against a disposable SQL Server LocalDB database seeded with the previous schema and saved data, under the app's read/write plus DDL roles.

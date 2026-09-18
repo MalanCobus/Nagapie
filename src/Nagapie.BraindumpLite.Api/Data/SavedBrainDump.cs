@@ -8,7 +8,15 @@ public sealed class SavedBrainDump
         get; set;
     }
     public string Text { get; set; } = "";
+    public bool OriginalAvailable { get; set; } = true;
+    public bool IsCommitted
+    {
+        get; set;
+    }
+    public bool WasAiProcessed
+    {
+        get; set;
+    }
     public string InputMethod { get; set; } = "text";
     public DateTimeOffset SavedAtUtc { get; set; } = DateTimeOffset.UtcNow;
 }
-

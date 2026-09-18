@@ -56,5 +56,7 @@ public static class AccountRegistration
         });
         builder.Services.AddScoped<IUserDocumentStore, SqlUserDocumentStore>();
         builder.Services.AddScoped<IDatabaseMigrator, SqlDatabaseMigrator>();
+        builder.Services.AddScoped<LegacyDataImporter>();
+        builder.Services.AddScoped<IRelationalDataStore, RelationalDataStore>();
     }
 }

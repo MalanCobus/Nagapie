@@ -203,4 +203,4 @@
 <data name="Error_SESSION_CHANGED" xml:space="preserve"><value>Your session expired or the account changed. Reload the page and sign in.</value></data>
 <data name="Error_SAVE_CONFLICT" xml:space="preserve"><value>This data changed in another window. Copy your new text before reloading the page. Nothing was overwritten.</value></data>
 <data name="Dump_NotSaved" xml:space="preserve"><value>Not saved yet</value></data>
-</root>
+<data name="Common_LoadMore" xml:space="preserve"><value>Load more</value></data></root>

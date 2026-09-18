@@ -203,4 +203,4 @@
 <data name="Error_SESSION_CHANGED" xml:space="preserve"><value>Je sessie is verlopen of het account is gewijzigd. Laad de pagina opnieuw en log in.</value></data>
 <data name="Error_SAVE_CONFLICT" xml:space="preserve"><value>Deze gegevens zijn in een ander venster gewijzigd. Kopieer je nieuwe tekst voordat je de pagina opnieuw laadt. Er is niets overschreven.</value></data>
 <data name="Dump_NotSaved" xml:space="preserve"><value>Nog niet opgeslagen</value></data>
-</root>
+<data name="Common_LoadMore" xml:space="preserve"><value>Meer laden</value></data></root>

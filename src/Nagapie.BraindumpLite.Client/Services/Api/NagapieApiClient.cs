@@ -7,8 +7,8 @@ namespace Nagapie.BraindumpLite.Client.Services;
 
 public sealed class NagapieApiClient(HttpClient http) : INagapieApiClient
 {
-    public async Task<List<SavedDumpResponse>> GetSavedDumpsAsync(CancellationToken cancellationToken = default) =>
-        await http.GetFromJsonAsync<List<SavedDumpResponse>>("api/data/history/dumps", cancellationToken) ?? [];
+    public async Task<List<SavedDumpResponse>> GetSavedDumpsAsync(CancellationToken cancellationToken = default, int page = 0) =>
+        await http.GetFromJsonAsync<List<SavedDumpResponse>>($"api/data/history/dumps?page={page}", cancellationToken) ?? [];
     public Task<PublicConfiguration?> GetConfigurationAsync(CancellationToken cancellationToken) => http.GetFromJsonAsync<PublicConfiguration>("api/config", cancellationToken);
     public async Task<ProcessDumpResponse> ProcessDumpAsync(ProcessDumpRequest request, CancellationToken cancellationToken)
     {

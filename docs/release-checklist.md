@@ -17,6 +17,7 @@
 - [ ] Enable payment only after the above checks pass.
 
 - [ ] Create Azure SQL, grant the app database user schema-change permissions, and configure ConnectionStrings__Nagapie before publishing. Verify automatic startup migrations succeed.
+- [ ] For the relational upgrade, confirm a restore point and stop old app instances before publishing. Verify imported data before reopening normal use; close old PWA tabs. See sql-and-accounts.md.
 - [ ] Configure database backup/restore and durable authentication key storage.
 - [ ] Add email verification and password recovery with a configured email provider before wider public account registration.
 - [ ] Decide and implement account deletion and retention policies.

@@ -2,13 +2,15 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Nagapie.BraindumpLite.Api;
 using Nagapie.BraindumpLite.Contracts;
+
 namespace Nagapie.BraindumpLite.Tests;
+
 public class ApiTests
 {
     private static ProcessDumpRequest Request() => new(Guid.NewGuid(), "Call the dentist today. Remember my idea.", "en-US", "text", [new(Guid.NewGuid(), "do", "Do", true)], null);
@@ -16,71 +18,143 @@ public class ApiTests
     [InlineData("")]
     [InlineData(" ")]
     public void EmptyInputRejected(string text) => Assert.False(DumpValidation.IsValid(Request() with { Text = text }));
-    [Fact] public void InputLimitsEnforced() {
-        Assert.False(DumpValidation.IsValid(Request() with { Text = new string('a', 5001) }));
-        Assert.False(DumpValidation.IsValid(Request() with { Language = "fr-FR" }));
-        Assert.False(DumpValidation.IsValid(Request() with { AvailableCategories = Enumerable.Range(0, 26).Select(_ => new CategoryReferenceDto(Guid.NewGuid(), "do", "Do", true)).ToList() }));
+    [Fact]
+    public void InputLimitsEnforced()
+    {
+        Assert.False(DumpValidation.IsValid(Request() with
+        {
+            Text = new string('a', 5001)
+        }));
+        Assert.False(DumpValidation.IsValid(Request() with
+        {
+            Language = "fr-FR"
+        }));
+        Assert.False(DumpValidation.IsValid(Request() with
+        {
+            AvailableCategories = Enumerable.Range(0, 26).Select(_ => new CategoryReferenceDto(Guid.NewGuid(), "do", "Do", true)).ToList()
+        }));
         Assert.True(DumpValidation.IsValid(Request()));
     }
-    [Fact] public void AiUnknownCategoryAndHorizonAreSafe() {
-        var result = AiProcessor.ValidateOutput("""{"items":[{"text":" Dentist ","suggestedCategoryId":"11111111-1111-1111-1111-111111111111","planningHorizon":"urgent"}]}""", Request());
-        Assert.Equal("Dentist", result.Items[0].Text); Assert.Null(result.Items[0].SuggestedCategoryId); Assert.Equal("later", result.Items[0].PlanningHorizon);
+
+    [Fact]
+    public void AiUnknownCategoryAndHorizonAreSafe()
+    {
+        var result = AiOutputValidator.Validate("""{"items":[{"text":" Dentist ","suggestedCategoryId":"11111111-1111-1111-1111-111111111111","planningHorizon":"urgent"}]}""", Request());
+        Assert.Equal("Dentist", result.Items[0].Text);
+        Assert.Null(result.Items[0].SuggestedCategoryId);
+        Assert.Equal("later", result.Items[0].PlanningHorizon);
     }
+
     [Theory]
     [InlineData("{}")]
     [InlineData("not json")]
     [InlineData("{\"items\":[]}")]
     [InlineData("{\"items\":[{\"text\":\"\",\"suggestedCategoryId\":null,\"planningHorizon\":\"today\"}]}")]
-    public void InvalidOutputRejected(string json) => Assert.Throws<AiFailure>(() => AiProcessor.ValidateOutput(json, Request()));
-    [Fact] public void TooManyItemsRejected() {
-        var json = JsonSerializer.Serialize(new { items = Enumerable.Range(0, 31).Select(_ => new { text = "Task", suggestedCategoryId = (string?)null, planningHorizon = "later" }) });
-        Assert.Throws<AiFailure>(() => AiProcessor.ValidateOutput(json, Request()));
+    public void InvalidOutputRejected(string json) => Assert.Throws<AiFailure>(() => AiOutputValidator.Validate(json, Request()));
+    [Fact]
+    public void TooManyItemsRejected()
+    {
+        var json = JsonSerializer.Serialize(new
+        {
+            items = Enumerable.Range(0, 31).Select(_ => new { text = "Task", suggestedCategoryId = (string?)null, planningHorizon = "later" })
+        });
+        Assert.Throws<AiFailure>(() => AiOutputValidator.Validate(json, Request()));
     }
-    [Fact] public void TokensCannotBeTamperedWith() {
-        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?> { ["UnlockTokens:SigningKey"] = new string('a', 48) }).Build();
-        var tokens = new UnlockTokens(config); var token = tokens.Issue("test-license");
-        Assert.True(tokens.Verify(token)); Assert.False(tokens.Verify(token + "x")); Assert.False(tokens.Verify("garbage"));
+
+    [Fact]
+    public void TokensCannotBeTamperedWith()
+    {
+        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["UnlockTokens:SigningKey"] = new string('a', 48) }).Build();
+        var tokens = new UnlockTokens(Microsoft.Extensions.Options.Options.Create(config.GetSection("UnlockTokens").Get<UnlockTokenOptions>()!));
+        var token = tokens.Issue("test-license");
+        Assert.True(tokens.Verify(token));
+        Assert.False(tokens.Verify(token + "x"));
+        Assert.False(tokens.Verify("garbage"));
         Assert.DoesNotContain("test-license", Encoding.UTF8.GetString(Convert.FromBase64String(token.Split('.')[0])));
-        var other = new UnlockTokens(new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?> { ["UnlockTokens:SigningKey"] = new string('b', 48) }).Build());
+        var other = new UnlockTokens(Microsoft.Extensions.Options.Options.Create(new UnlockTokenOptions { SigningKey = new string('b', 48) }));
         Assert.False(other.Verify(token));
     }
-    private sealed class FakeAi : IAiBrainDumpProcessor {
+
+    private sealed class FakeAi : IAiBrainDumpProcessor
+    {
         public Task<ProcessDumpResponse> ProcessAsync(ProcessDumpRequest request, CancellationToken ct) => Task.FromResult(new ProcessDumpResponse(request.SourceDumpId, [new("Call dentist", request.AvailableCategories[0].Id, "today")], "test"));
     }
-    private static WebApplicationFactory<Program> Factory(bool paywall = false) => new WebApplicationFactory<Program>().WithWebHostBuilder(builder => {
+
+    private static WebApplicationFactory<Program> Factory(bool paywall = false) => new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+    {
         builder.UseEnvironment("Development");
-        builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string,string?> { ["Access:PaywallEnabled"] = paywall.ToString(), ["AiProvider:ApiKey"] = "", ["UnlockTokens:SigningKey"] = new string('a', 48) }));
+        builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?> { ["Access:PaywallEnabled"] = paywall.ToString(), ["AiProvider:ApiKey"] = "", ["UnlockTokens:SigningKey"] = new string('a', 48) }));
         builder.ConfigureServices(services => services.AddSingleton<IAiBrainDumpProcessor, FakeAi>());
     });
-    [Fact] public async Task EndpointValidatesAndReturnsStructuredResult() {
-        using var factory = Factory(); using var client = factory.CreateClient();
+    [Fact]
+    public async Task EndpointValidatesAndReturnsStructuredResult()
+    {
+        using var factory = Factory();
+        using var client = factory.CreateClient();
         var valid = await client.PostAsJsonAsync("/api/dumps/process", Request());
         Assert.Equal(HttpStatusCode.OK, valid.StatusCode);
         Assert.Single((await valid.Content.ReadFromJsonAsync<ProcessDumpResponse>())!.Items);
-        var invalid = await client.PostAsJsonAsync("/api/dumps/process", Request() with { Text = "" });
+        var invalid = await client.PostAsJsonAsync("/api/dumps/process", Request() with
+        {
+            Text = ""
+        });
         Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
     }
-    [Fact] public async Task TestModeNeverBlocksAndProductionEnforcesSoftLimit() {
-        using var test = Factory(); using var client = test.CreateClient();
-        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/dumps/process", Request() with { SuccessfulDumpCount = 10 })).StatusCode);
-        using var production = Factory(true); using var paidClient = production.CreateClient();
-        Assert.Equal(HttpStatusCode.PaymentRequired, (await paidClient.PostAsJsonAsync("/api/dumps/process", Request() with { SuccessfulDumpCount = 3 })).StatusCode);
+
+    [Fact]
+    public async Task TestModeNeverBlocksAndProductionEnforcesSoftLimit()
+    {
+        using var test = Factory();
+        using var client = test.CreateClient();
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/dumps/process", Request() with
+        {
+            SuccessfulDumpCount = 10
+        })).StatusCode);
+        using var production = Factory(true);
+        using var paidClient = production.CreateClient();
+        Assert.Equal(HttpStatusCode.PaymentRequired, (await paidClient.PostAsJsonAsync("/api/dumps/process", Request() with
+        {
+            SuccessfulDumpCount = 3
+        })).StatusCode);
         var token = production.Services.GetRequiredService<UnlockTokens>().Issue("example");
-        Assert.Equal(HttpStatusCode.OK, (await paidClient.PostAsJsonAsync("/api/dumps/process", Request() with { SuccessfulDumpCount = 3, UnlockToken = token })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await paidClient.PostAsJsonAsync("/api/dumps/process", Request() with
+        {
+            SuccessfulDumpCount = 3,
+            UnlockToken = token
+        })).StatusCode);
     }
-    [Fact] public async Task SecretsNeverAppearInPublicConfig() {
-        using var factory = Factory(); using var client = factory.CreateClient();
+
+    [Fact]
+    public async Task SecretsNeverAppearInPublicConfig()
+    {
+        using var factory = Factory();
+        using var client = factory.CreateClient();
         var text = await client.GetStringAsync("/api/config");
-        Assert.DoesNotContain("ApiKey", text); Assert.DoesNotContain("SigningKey", text); Assert.DoesNotContain("ProductSecret", text);
+        Assert.DoesNotContain("ApiKey", text);
+        Assert.DoesNotContain("SigningKey", text);
+        Assert.DoesNotContain("ProductSecret", text);
     }
-    [Fact] public async Task RateLimitReturns429() {
-        using var factory = Factory(); using var client = factory.CreateClient();
+
+    [Fact]
+    public async Task RateLimitReturns429()
+    {
+        using var factory = Factory();
+        using var client = factory.CreateClient();
         HttpResponseMessage? response = null;
-        for (int i = 0; i < 16; i++) { response?.Dispose(); response = await client.PostAsJsonAsync("/api/dumps/process", Request()); }
-        Assert.Equal(HttpStatusCode.TooManyRequests, response!.StatusCode); response.Dispose();
+        for (int i = 0; i < 16; i++)
+        {
+            response?.Dispose();
+            response = await client.PostAsJsonAsync("/api/dumps/process", Request());
+        }
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, response!.StatusCode);
+        response.Dispose();
     }
-    [Fact] public async Task MissingKeyReturnsActionableFailure() {
-        using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b => b.ConfigureAppConfiguration((_, c) => c.AddInMemoryCollection(new Dictionary<string,string?> { ["AiProvider:ApiKey"] = "", ["Access:PaywallEnabled"] = "false" })));
+
+    [Fact]
+    public async Task MissingKeyReturnsActionableFailure()
+    {
+        using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b => b.ConfigureAppConfiguration((_, c) => c.AddInMemoryCollection(new Dictionary<string, string?> { ["AiProvider:ApiKey"] = "", ["Access:PaywallEnabled"] = "false" })));
         using var client = factory.CreateClient();
         var response = await client.PostAsJsonAsync("/api/dumps/process", Request());
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);

@@ -6,16 +6,6 @@
 else if (State.Access.UnlockToken is not null && success) { <p class="lead">@L["Access_Unlocked"]</p><a class="button primary" href="/">@L["List_New"]</a> }
 else { <p class="lead">@L["Access_Text"]</p>
 @if (Uri.TryCreate(State.Config.PayhipProductUrl, UriKind.Absolute, out var url) && url.Scheme == "https") { <a class="button primary" href="@url" target="_blank" rel="noopener noreferrer">@L["Access_Buy"]<Icon Name="arrow"/></a> } else { <p>@L["Access_NotConfigured"]</p> }
-<div class="settings-card"><label for="license">@L["Access_Key"]</label><input id="license" maxlength="100" autocomplete="off" @bind="key" @bind:event="oninput"/><ErrorMessage Code="@Error"/><button class="button secondary" disabled="@(Busy || string.IsNullOrWhiteSpace(key))" @onclick="Verify">@L["Access_Verify"]</button></div>
+<div class="settings-card"><label for="license">@L["Access_Key"]</label><input id="license" maxlength="100" autocomplete="off" @bind="key" @bind:event="oninput"/><ErrorMessage Code="@Error"/><button class="button secondary" disabled="@(Busy || string.IsNullOrWhiteSpace(key))" @onclick="VerifyAsync">@L["Access_Verify"]</button></div>
 }
 </section>
-@code {
- string key = ""; bool success;
- Task Verify() => Run(async () => {
-    using var response = await Http.PostAsJsonAsync("api/licenses/verify", new VerifyLicenseRequest(key));
-    if (!response.IsSuccessStatusCode) { Error = "LICENSE_UNAVAILABLE"; return; }
-    var result = await response.Content.ReadFromJsonAsync<VerifyLicenseResponse>();
-    if (result is not { IsValid: true, UnlockToken: not null }) { Error = "LICENSE_INVALID"; return; }
-    await State.UnlockAsync(result.UnlockToken); key = ""; success = true;
- });
-}

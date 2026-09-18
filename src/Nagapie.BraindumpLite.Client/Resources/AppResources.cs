@@ -1,2 +1,5 @@
 namespace Nagapie.BraindumpLite.Client.Resources;
-public sealed class AppResources { }
+
+public sealed class AppResources
+{
+}

@@ -1,6 +1,6 @@
 # AI prompt v1.0
 
-Canonical prompt: src/Nagapie.BraindumpLite.Api/AiProcessor.cs, Prompt constant.
+Canonical prompt: src/Nagapie.BraindumpLite.Api/AI/BrainDumpPrompt.cs, Text constant.
 
 Split by meaning; preserve the input language and intent. Return concise independent thoughts without inventing facts, tasks, diagnoses, advice, or dates. Use only supplied category IDs. Choose Today only for clear immediate action, Next week for a clear near-term intention, and Later otherwise. Suggest Let go only when the user explicitly expresses that wish.
 

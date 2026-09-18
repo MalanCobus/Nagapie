@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Nagapie.BraindumpLite.Client;
 using Nagapie.BraindumpLite.Client.Services;
+
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
@@ -9,5 +10,6 @@ builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.H
 builder.Services.AddLocalization();
 builder.Services.AddScoped<Microsoft.Extensions.Localization.IStringLocalizer<Nagapie.BraindumpLite.Client.Resources.AppResources>, AppLocalizer>();
 builder.Services.AddScoped<ILocalStorageService, LocalStorage>();
+builder.Services.AddScoped<INagapieApiClient, NagapieApiClient>();
 builder.Services.AddScoped<AppState>();
 await builder.Build().RunAsync();

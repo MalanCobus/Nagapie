@@ -78,9 +78,11 @@ Saved data belongs to one browser on one device. No cloud sync or backup is incl
 
 - `src/Nagapie.BraindumpLite.Client` — UI, local state, resources, storage, speech bridge, calendar export.
 - `src/Nagapie.BraindumpLite.Api` — hosted static PWA, AI processing and Payhip verification.
-- `src/Nagapie.BraindumpLite.Contracts` — request and response contracts only.
-- `tests/Nagapie.BraindumpLite.Client.Tests` — persistence, recovery, localization and calendar tests.
+- `src/Nagapie.BraindumpLite.Contracts` — request/response contracts, input validation, and shared error codes.
+- `tests/Nagapie.BraindumpLite.Client.Tests` — API client, persistence, recovery, localization and calendar tests.
 - `tests/Nagapie.BraindumpLite.Tests` — API, AI validation and access tests.
 - `docs/specification.md` — original user-provided specification.
+
+See [architecture](docs/architecture.md) for service boundaries and a guide to the refactored C# structure.
 
 Implementation references: [OpenAI structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs), [Payhip software license keys](https://help.payhip.com/article/317-software-license-keys-new).

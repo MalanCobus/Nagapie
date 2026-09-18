@@ -16,30 +16,19 @@ else {
  }
  <details class="archive"><summary>@L["List_Archive"] <span class="count">@Filtered.Count(i => i.IsCompleted)</span></summary>@foreach(var item in Filtered.Where(i => i.IsCompleted).OrderByDescending(i => i.CompletedAtUtc)) { @ItemCard(item) }</details>
 }
-@if (undoItem is not null) { <div class="toast" role="status"><Icon Name="check"/><span>@L["List_Feedback"]</span><button @onclick="Undo">@L["List_Undo"]</button><button class="icon-button" aria-label="@L["Common_Close"]" @onclick="() => undoItem = null"><Icon Name="close" Size="16"/></button></div> }
-@if (editing is not null) { <Modal Title="@L["List_Edit"]" Closed="() => editing = null"><ItemFields Item="editing"/><ErrorMessage Code="@Error"/><div class="modal-actions"><button class="button secondary" autofocus @onclick="() => editing = null">@L["Common_Cancel"]</button><button class="button primary" disabled="@Busy" @onclick="SaveEdit">@L["Common_Save"]</button></div></Modal> }
-@if (deleting is not null) { <Modal Title="@L["Confirm_Title"]" Closed="() => deleting = null"><p>@L["Confirm_Text"]</p><blockquote>@deleting.Text</blockquote><ErrorMessage Code="@Error"/><div class="modal-actions"><button class="button secondary" autofocus @onclick="() => deleting = null">@L["Common_Cancel"]</button><button class="button danger" disabled="@Busy" @onclick="Delete">@L["Common_Delete"]</button></div></Modal> }
+@if (undoItem is not null) { <div class="toast" role="status"><Icon Name="check"/><span>@L["List_Feedback"]</span><button @onclick="UndoAsync">@L["List_Undo"]</button><button class="icon-button" aria-label="@L["Common_Close"]" @onclick="() => undoItem = null"><Icon Name="close" Size="16"/></button></div> }
+@if (editing is not null) { <Modal Title="@L["List_Edit"]" Closed="() => editing = null"><ItemFields Item="editing"/><ErrorMessage Code="@Error"/><div class="modal-actions"><button class="button secondary" autofocus @onclick="() => editing = null">@L["Common_Cancel"]</button><button class="button primary" disabled="@Busy" @onclick="SaveEditAsync">@L["Common_Save"]</button></div></Modal> }
+@if (deleting is not null) { <Modal Title="@L["Confirm_Title"]" Closed="() => deleting = null"><p>@L["Confirm_Text"]</p><blockquote>@deleting.Text</blockquote><ErrorMessage Code="@Error"/><div class="modal-actions"><button class="button secondary" autofocus @onclick="() => deleting = null">@L["Common_Cancel"]</button><button class="button danger" disabled="@Busy" @onclick="DeleteAsync">@L["Common_Delete"]</button></div></Modal> }
 @if (calendar is not null) { <CalendarDialog Item="calendar" Closed="() => calendar = null"/> }
 @code {
- string filter = "";
- BrainDumpItem? editing, deleting, calendar, undoItem;
- IEnumerable<BrainDumpItem> Filtered => State.Store.Items.Where(i => filter == "" || (filter == "unsorted" ? i.CategoryId is null : i.CategoryId?.ToString() == filter));
  RenderFragment ItemCard(BrainDumpItem item) => @<article class="thought-card @(item.IsCompleted ? "completed" : "")">
-    @if (!item.IsCompleted) { <button class="complete-button" disabled="@Busy" aria-label="@L["List_Complete"]" @onclick='() => Archive(item, "completed")'><Icon Name="check" Size="17"/></button> }
+    @if (!item.IsCompleted) { <button class="complete-button" disabled="@Busy" aria-label="@L["List_Complete"]" @onclick='() => ArchiveAsync(item, "completed")'><Icon Name="check" Size="17"/></button> }
     else { <span class="archive-icon"><Icon Name="@(item.CompletionReason == "let-go" ? "leaf" : "check")"/></span> }
     <div class="thought-content"><p>@item.Text</p><span class="category-tag @(State.Categories.FirstOrDefault(c => c.Id == item.CategoryId)?.ColorToken ?? "stone")">@CategoryName(item.CategoryId)</span>@if (item.IsCompleted) { <span class="completion-label">@L[item.CompletionReason == "let-go" ? "List_Released" : "List_Done"]</span> }</div>
     <div class="thought-actions">
-    @if (item.IsCompleted) { <button class="text-button" disabled="@Busy" @onclick="() => Restore(item)">@L["List_Restore"]</button> }
-    else { <button class="icon-button" title="@L["List_Edit"]" aria-label="@L["List_Edit"]" @onclick="() => editing = item with { }"><Icon Name="edit" Size="17"/></button><button class="icon-button" title="@L["Calendar_Export"]" aria-label="@L["Calendar_Export"]" @onclick="() => calendar = item"><Icon Name="calendar" Size="17"/></button><button class="icon-button" title="@L["List_LetGo"]" aria-label="@L["List_LetGo"]" disabled="@Busy" @onclick='() => Archive(item, "let-go")'><Icon Name="leaf" Size="17"/></button> }
+    @if (item.IsCompleted) { <button class="text-button" disabled="@Busy" @onclick="() => RestoreAsync(item)">@L["List_Restore"]</button> }
+    else { <button class="icon-button" title="@L["List_Edit"]" aria-label="@L["List_Edit"]" @onclick="() => editing = item with { }"><Icon Name="edit" Size="17"/></button><button class="icon-button" title="@L["Calendar_Export"]" aria-label="@L["Calendar_Export"]" @onclick="() => calendar = item"><Icon Name="calendar" Size="17"/></button><button class="icon-button" title="@L["List_LetGo"]" aria-label="@L["List_LetGo"]" disabled="@Busy" @onclick='() => ArchiveAsync(item, "let-go")'><Icon Name="leaf" Size="17"/></button> }
     <button class="icon-button" title="@L["List_Delete"]" aria-label="@L["List_Delete"]" @onclick="() => deleting = item"><Icon Name="trash" Size="17"/></button>
     </div>
  </article>;
- Task Archive(BrainDumpItem item, string reason) => Run(async () => { await State.ArchiveAsync(item, reason); undoItem = item; });
- Task Restore(BrainDumpItem item) => Run(() => State.RestoreAsync(item));
- Task Undo() => Run(async () => { if (undoItem is not null) { await State.UpdateAsync(undoItem); undoItem = null; } });
- Task Delete() => Run(async () => { await State.DeleteAsync(deleting!.Id); if (undoItem?.Id == deleting.Id) undoItem = null; deleting = null; });
- Task SaveEdit() => Run(async () => {
-    if (State.Categories.Any(c => c.Id == editing!.CategoryId && c.Key == "let-go")) editing = editing! with { CompletionReason = "let-go", CompletedAtUtc = DateTimeOffset.UtcNow };
-    await State.UpdateAsync(editing!); editing = null;
- });
 }

@@ -2,7 +2,20 @@
 
 The API serves a static WebAssembly PWA. All UI interactions run in the browser. There is no Interactive Server, SignalR session, user database, or content persistence on the API.
 
-The only external calls are explicit AI processing and license verification. The OpenAI-compatible HTTP adapter sits behind IAiBrainDumpProcessor. The browser uses ILocalStorageService, allowing a future SQLite-backed implementation.
+The only external calls are explicit AI processing and license verification. The OpenAI-compatible HTTP adapter sits behind IAiBrainDumpProcessor. The browser uses ILocalStorageService.
+
+## Code organization
+
+- API `Program.cs` contains application composition and middleware ordering. `Configuration/ServiceRegistration.cs` registers services and binds typed options, preserving existing configuration keys.
+- `Endpoints/NagapieEndpoints.cs` validates requests, applies access rules, and translates service results into HTTP responses. Provider calls live in `AI/` and `Licensing/`.
+- `IAiBrainDumpProcessor`, `ILicenseVerifier`, and `IUnlockTokenService` define the server integration boundaries. The prompt, request schema, and output validation have dedicated files.
+- `Middleware/ApiRequestMiddleware.cs` owns response headers, safe error handling, and request metadata logging. Provider bodies, credentials, and braindumps are never logged.
+- Client `Services/Api/INagapieApiClient.cs` separates pages from HTTP transport and validates responses before returning them. `DumpReviewMapper` maps accepted output into local items.
+- Razor markup describes views. Component event handlers and lifecycle methods live in matching `.razor.cs` files. The list's inline item template remains in Razor because it contains markup.
+- `AppState` coordinates browser state and persistence order. `Domain/CategoryRules`, `ThoughtRules`, and `StoredDataValidator` contain business rules without browser or network dependencies. Stateless rules do not need interfaces.
+- Contracts and domain models have separate, named files. Shared `ErrorCodes` keep protocol values consistent with localized messages. Stored JSON and HTTP field names remain unchanged.
+
+Use `dotnet format Nagapie.BraindumpLite.sln --no-restore` for formatting and `dotnet test Nagapie.BraindumpLite.sln` for regression tests. The repository's `.editorconfig` defines C# brace and indentation conventions. Nullable reference checks and warnings-as-errors remain enabled.
 
 ## Storage
 

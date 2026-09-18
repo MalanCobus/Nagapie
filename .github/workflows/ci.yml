@@ -15,5 +15,6 @@ jobs:
           node-version: '24'
       - run: node --test tests/service-worker.test.mjs
       - run: dotnet restore
+      - run: dotnet format whitespace Nagapie.BraindumpLite.sln --no-restore --verify-no-changes
       - run: dotnet test --no-restore --configuration Release
       - run: dotnet publish src/Nagapie.BraindumpLite.Api --configuration Release --no-restore --output artifacts/publish

@@ -1,9 +1,6 @@
 window.nagapie = (() => {
     let recognition, speechTimer, stopped = Promise.resolve();
     return {
-        storageGet: key => localStorage.getItem(key),
-        storageSet: (key, value) => localStorage.setItem(key, value),
-        storageRemove: key => localStorage.removeItem(key),
         online: () => navigator.onLine,
         setLanguage: language => { document.documentElement.lang = language.startsWith("nl") ? "nl" : "en"; },
         pageTop: () => window.scrollTo({top:0, left:0, behavior:"instant"}),

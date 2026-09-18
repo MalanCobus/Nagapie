@@ -2,14 +2,14 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.JSInterop;
-using Nagapie.BraindumpLite.Client.Domain;
 using Nagapie.BraindumpLite.Client.Services;
+using Nagapie.BraindumpLite.Contracts.Domain;
 
 namespace Nagapie.BraindumpLite.Client.Tests;
 
 public class StateTests
 {
-    private sealed class MemoryStorage : ILocalStorageService
+    private sealed class MemoryStorage : IUserDataStore
     {
         public Dictionary<string, string> Data = [];
         public string? FailWrite, FailRemove;

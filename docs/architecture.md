@@ -1,8 +1,10 @@
 # Architecture
 
-The API serves a static WebAssembly PWA. All UI interactions run in the browser. There is no Interactive Server, SignalR session, user database, or content persistence on the API.
+The API serves a static WebAssembly PWA. All UI interactions run in the browser. The API uses ASP.NET Identity and EF Core with SQL Server/Azure SQL for accounts and all saved user content. There is no Interactive Server or SignalR session.
 
-The only external calls are explicit AI processing and license verification. The OpenAI-compatible HTTP adapter sits behind IAiBrainDumpProcessor. The browser uses ILocalStorageService.
+The only external calls are explicit AI processing and license verification. The OpenAI-compatible HTTP adapter sits behind IAiBrainDumpProcessor. The browser uses IUserDataStore, implemented by SqlUserDataStore over authenticated HTTP. No user content is stored in browser storage.
+
+The SQL/account upgrade supersedes the original local-only specification. See [SQL and accounts](sql-and-accounts.md) for security boundaries, migrations, and current account limitations.
 
 ## Code organization
 
@@ -19,7 +21,7 @@ Use `dotnet format Nagapie.BraindumpLite.sln --no-restore` for formatting and `d
 
 ## Storage
 
-Five namespaced keys: nagapie.braindump.items, categories, draft, settings, access. Each contains a schema-versioned envelope. Items and committed session IDs share one atomic JSON write. This slightly extends the document's items-only shape to make retry and free-session accounting reliable without a transaction across localStorage keys.
+UserDocuments has a composite (UserId, Key) primary key and a concurrency version. Five sections (items, categories, draft, settings, access) are serialized in SQL JSON columns. Items and committed session IDs share an atomic write; the original saved BrainDump is inserted in the same transaction. Identity tables hold accounts. See sql-and-accounts.md for schema and setup.
 
 Draft cleanup happens after commit. A repeated commit recognizes its source ID. Invalid saved data blocks writes instead of silently replacing it. A failed storage write never replaces the in-memory saved list with an optimistic result.
 
@@ -29,11 +31,11 @@ Time buckets never automatically move items. Let go is an archive reason, not de
 
 ## Access
 
-Both API and client read the same server configuration. The paywall is disabled by default. The accepted accountless soft limit uses an untrusted local count, not tracking or identity. Signed HMAC tokens protect paid unlock claims; they do not make the trial counter tamper-proof.
+Both API and client read the same server configuration. The paywall is disabled by default. Identity cookie authentication is required for all data, AI and license endpoints. The optional paywall still uses a soft client-supplied count. Signed HMAC tokens protect paid unlock claims; they do not make the trial counter tamper-proof.
 
 ## Localization
 
-Both .resx resource sets are embedded in the main client assembly. A scoped IStringLocalizer selects them using the saved language. This makes switching immediate and offline-capable without relying on asynchronously downloaded satellite assemblies.
+Both .resx resource sets are embedded in the main client assembly. A scoped IStringLocalizer selects them using the saved language. This makes switching immediate after account settings load without relying on asynchronously downloaded satellite assemblies.
 
 ## PWA
 

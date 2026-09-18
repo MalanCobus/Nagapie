@@ -2,10 +2,11 @@
 
 | Data | Processing | Storage |
 |---|---|---|
-| Draft and reviewed items | Browser; full draft and category names sent to the selected AI provider only after consent | Versioned localStorage |
+| Draft and reviewed items | Browser; full draft and category names sent to the selected AI provider only after consent | Per-user SQL documents |
+| Accounts | ASP.NET Identity | Email, password hash, lockout/security metadata in SQL |
 | Audio | Browser speech-recognition provider when explicitly enabled | Nagapie never stores audio |
-| AI requests | Own API and configured external provider | No Nagapie content database or request/response body logging |
-| License | Own API and Payhip over HTTPS | Only signed unlock token saved locally |
+| AI requests | Own API and configured external provider | Drafts and saved content are in SQL; no request/response body logging |
+| License | Own API and Payhip over HTTPS | Signed unlock token saved in the account's SQL document |
 | Request metadata | ASP.NET Core / hosting layer | Hosting/log policy must be finalized |
 | Calendar export | Browser | User downloads .ics |
 | Support | User's mail client | Recipient mail provider, when user sends it |

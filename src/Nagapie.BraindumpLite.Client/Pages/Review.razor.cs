@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
-using Nagapie.BraindumpLite.Client.Domain;
 using Nagapie.BraindumpLite.Contracts;
+using Nagapie.BraindumpLite.Contracts.Domain;
 
 namespace Nagapie.BraindumpLite.Client.Pages;
 

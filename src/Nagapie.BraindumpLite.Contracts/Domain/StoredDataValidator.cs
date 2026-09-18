@@ -1,6 +1,6 @@
 using Nagapie.BraindumpLite.Contracts;
 
-namespace Nagapie.BraindumpLite.Client.Domain;
+namespace Nagapie.BraindumpLite.Contracts.Domain;
 
 public static class StoredDataValidator
 {

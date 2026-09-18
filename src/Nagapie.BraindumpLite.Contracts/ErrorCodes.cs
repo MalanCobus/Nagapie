@@ -25,4 +25,11 @@ public static class ErrorCodes
     public const string Storage = "STORAGE";
     public const string StorageInvalid = "STORAGE_INVALID";
     public const string UnexpectedError = "UNEXPECTED_ERROR";
+    public const string AccountInput = "ACCOUNT_INPUT";
+    public const string RegisterFailed = "REGISTER_FAILED";
+    public const string LoginFailed = "LOGIN_FAILED";
+    public const string PasswordMismatch = "PASSWORD_MISMATCH";
+    public const string AccountUnavailable = "ACCOUNT_UNAVAILABLE";
+    public const string SessionChanged = "SESSION_CHANGED";
+    public const string SaveConflict = "SAVE_CONFLICT";
 }

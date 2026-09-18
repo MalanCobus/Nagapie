@@ -7,11 +7,16 @@
 - [ ] Supply operator identity, registered address, KvK and support ownership.
 - [ ] Finalize privacy statement, terms, taxes and checkout wording.
 - [ ] Configure HTTPS hosting, known proxy behavior, log retention, request-size and abuse budgets.
-- [ ] Test Payhip purchase, invalid/disabled/refunded licenses, restoration after clearing local data, signing-key rotation.
+- [ ] Test Payhip purchase, invalid/disabled/refunded licenses, restoration after clearing account data, signing-key rotation.
 - [ ] Test voice permissions, partial transcripts, denied microphone, interruption and five-minute timeout on real devices.
-- [ ] Test published PWA offline, installation and update behavior on iPhone Safari and Android Chrome.
+- [ ] Test published PWA offline error messages, installation and update behavior on iPhone Safari and Android Chrome.
 - [ ] Test desktop Safari, Chrome, Edge and Firefox.
 - [ ] Import timed/all-day exports into Apple Calendar, Google Calendar and Outlook.
 - [ ] Complete real screenreader and keyboard-only review; verify contrast.
-- [ ] Decide whether multiple open tabs should be blocked or synchronized before broader distribution.
+- [ ] Test multi-device conflict messages and session changes with real browsers.
 - [ ] Enable payment only after the above checks pass.
+
+- [ ] Create Azure SQL, apply the migration, and configure ConnectionStrings__Nagapie before publishing.
+- [ ] Configure database backup/restore and durable authentication key storage.
+- [ ] Add email verification and password recovery with a configured email provider before wider public account registration.
+- [ ] Decide and implement account deletion and retention policies.

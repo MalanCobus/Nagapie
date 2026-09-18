@@ -1,11 +1,11 @@
 using System.Globalization;
 using Microsoft.JSInterop;
-using Nagapie.BraindumpLite.Client.Domain;
 using Nagapie.BraindumpLite.Contracts;
+using Nagapie.BraindumpLite.Contracts.Domain;
 
 namespace Nagapie.BraindumpLite.Client.Services;
 
-public sealed class AppState(ILocalStorageService storage, INagapieApiClient api, IJSRuntime js)
+public sealed class AppState(IUserDataStore storage, INagapieApiClient api, IJSRuntime js)
 {
     public AppSettings Settings { get; private set; } = new();
     public ItemStore Store { get; private set; } = new();
@@ -51,7 +51,7 @@ public sealed class AppState(ILocalStorageService storage, INagapieApiClient api
                 }
             }
         }
-        catch (Exception ex) when (ex is JSException or System.Text.Json.JsonException or InvalidDataException)
+        catch (Exception ex) when (ex is JSException or System.Text.Json.JsonException or InvalidDataException or ApiClientException or HttpRequestException or TaskCanceledException)
         {
             StorageFailed = true;
         }
@@ -217,20 +217,7 @@ public sealed class AppState(ILocalStorageService storage, INagapieApiClient api
 
     public async Task ClearAsync()
     {
-        foreach (var key in new[]
-        {
-            "items",
-            "categories",
-            "draft",
-            "settings",
-            "access"
-        }
-
-        )
-        {
-            await storage.RemoveAsync(key);
-        }
-
+        await storage.ClearAsync();
         Store = new();
         Categories = Defaults();
         Draft = new();
@@ -239,5 +226,15 @@ public sealed class AppState(ILocalStorageService storage, INagapieApiClient api
         StorageFailed = false;
         SetCulture();
         Notify();
+    }
+    public void ResetMemory()
+    {
+        Store = new();
+        Categories = Defaults();
+        Draft = new();
+        Settings = new();
+        Access = new();
+        Loaded = false;
+        StorageFailed = false;
     }
 }

@@ -4,17 +4,17 @@ A quiet, bilingual place to capture thoughts, review AI suggestions, and decide 
 
 ## Run locally
 
-Requires the .NET 10 SDK.
+Requires the .NET 10 SDK and SQL Server Express LocalDB. See [SQL and account setup](docs/sql-and-accounts.md), including the Azure steps. The database has already been initialized on this development machine. On another machine, run `dotnet run --project src/Nagapie.BraindumpLite.Api -- --migrate` once before starting the app.
 
 ```powershell
 dotnet run --project src/Nagapie.BraindumpLite.Api --launch-profile http
 ```
 
-Open http://localhost:5211. The API serves the Blazor WebAssembly app on the same origin. There is no database or account setup. Payments are disabled by default.
+Open http://localhost:5211 and register an account. The API serves the Blazor WebAssembly app on the same origin. All saved data is stored per user in SQL. Payments are disabled by default.
 
 ## Connect automatic sorting
 
-The real OpenAI-compatible integration is implemented; it does not substitute mock output when no key is available. Without a key, users can save their dump as one local thought and manage their list.
+The real OpenAI-compatible integration is implemented; it does not substitute mock output when no key is available. Without a key, users can save their dump as one thought in their SQL-backed account and manage their list.
 
 Store your key using the server project's user-secrets manager (never in client configuration or source control):
 
@@ -31,14 +31,14 @@ The first AI request asks for consent. Only the dump and category references go 
 ## What is implemented
 
 - Installable, mobile-first Blazor WebAssembly PWA, with Dutch and English resources.
-- Welcome and local-storage acknowledgement.
+- Registration, login, logout, and per-user SQL storage; onboarding explains account storage.
 - Draft autosave; AI consent, processing, cancellation, and honest fallback.
 - Review: edit text, change category/time bucket, merge, remove, and save.
 - Today / Next week / Later list, filtering, editing, completion, recoverable Let go, Undo, archive, and confirmed permanent deletion.
 - Default and custom categories.
 - Browser speech recognition where supported, consent and five-minute limit.
 - Local RFC 5545 calendar export with escaping, UTF-8 line folding, timed and all-day events.
-- Offline list management after installing/loading the published PWA.
+- Original braindump history and optimistic concurrency checks. Data access requires an internet connection.
 - Payhip verification and signed unlock tokens, behind a disabled-by-default paywall.
 - Rate limiting, response validation, body limits, generic errors, content-safe logging.
 - Versioned, replaceable browser storage; idempotent session commits.
@@ -66,13 +66,13 @@ Configure these server settings before enabling `Access:PaywallEnabled`:
 
 The first three successfully saved AI sessions are free. Failed calls, canceled reviews, manual saves, and failed storage writes do not count. Items and commit receipts are stored atomically; retrying after an interrupted draft cleanup cannot duplicate a session.
 
-The count is deliberately local and resettable, as specified. The server receives this untrusted count and validates signed unlock tokens; it does not claim to enforce a fraud-resistant trial. Tokens have no automatic expiry or revocation in this Lite build. Rotating the signing key invalidates existing tokens; purchasers can re-enter their original key.
+The optional count is saved with the account but remains client-supplied and resettable. The server receives this untrusted count and validates signed unlock tokens; it does not claim to enforce a fraud-resistant trial. Tokens have no automatic expiry or revocation in this Lite build. Rotating the signing key invalidates existing tokens; purchasers can re-enter their original key.
 
 ## Before calling it a finished public MVP
 
 See [verification](docs/verification.md) and [release checklist](docs/release-checklist.md). A real provider key, live AI quality validation, Payhip checkout tests, finalized legal/vendor details, real-device speech tests, and the complete cross-browser/calendar-import matrix remain necessary.
 
-Saved data belongs to one browser on one device. No cloud sync or backup is included. Do not use private browsing for data you need to keep. Multiple simultaneous tabs are currently not a collaborative editing workflow.
+Saved data belongs to the signed-in account and is stored in SQL. Reload to see updates from another device. Stale writes are rejected instead of silently overwriting another tab. Configure database backups for hosted use. Browser-only data from earlier versions is not read or imported.
 
 ## Project layout
 

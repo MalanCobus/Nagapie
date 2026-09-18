@@ -11,7 +11,7 @@ public static class ServiceRegistration
         builder.Services.Configure<AccessOptions>(builder.Configuration.GetSection(AccessOptions.SectionName));
         builder.Services.Configure<PayhipOptions>(builder.Configuration.GetSection(PayhipOptions.SectionName));
         builder.Services.Configure<UnlockTokenOptions>(builder.Configuration.GetSection(UnlockTokenOptions.SectionName));
-        builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 65536);
+        builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 4 * 1024 * 1024);
         // Payhip includes the license in its query. Disable outgoing HTTP logging entirely.
         builder.Logging.AddFilter("System.Net.Http.HttpClient", LogLevel.None);
         builder.Services.AddHttpClient<IAiBrainDumpProcessor, AiProcessor>(c => c.MaxResponseContentBufferSize = 262144);

@@ -17,7 +17,7 @@
 <data name="Dump_Hint" xml:space="preserve"><value>Het hoeft niet netjes. Begin gewoon ergens.</value></data>
 <data name="Dump_Sort" xml:space="preserve"><value>Help me ordenen</value></data>
 <data name="Dump_SaveOne" xml:space="preserve"><value>Bewaar als één gedachte</value></data>
-<data name="Dump_Saved" xml:space="preserve"><value>Concept opgeslagen op dit apparaat</value></data>
+<data name="Dump_Saved" xml:space="preserve"><value>Concept opgeslagen in je account</value></data>
 <data name="Dump_Saving" xml:space="preserve"><value>Je concept wordt opgeslagen…</value></data>
 <data name="Dump_Empty" xml:space="preserve"><value>Een klein begin is genoeg.</value></data>
 <data name="Dump_Example" xml:space="preserve"><value>Een beetje inspiratie nodig?</value></data>
@@ -29,7 +29,7 @@
 <data name="Dump_ProcessingDetail" xml:space="preserve"><value>Je gedachten worden rustig gesorteerd. Jij beslist wat klopt.</value></data>
 <data name="Dump_Cancel" xml:space="preserve"><value>Terug naar schrijven</value></data>
 <data name="Dump_AiUnavailable" xml:space="preserve"><value>Automatisch ordenen is nog niet aangesloten. Je kunt je gedachten hier wel bewaren.</value></data>
-<data name="Dump_Local" xml:space="preserve"><value>Op dit apparaat bewaard</value></data>
+<data name="Dump_Local" xml:space="preserve"><value>Opgeslagen in je account</value></data>
 <data name="Dump_Control" xml:space="preserve"><value>Jij houdt de regie</value></data>
 <data name="Dump_Prompt1" xml:space="preserve"><value>Iets om te doen</value></data>
 <data name="Dump_Prompt2" xml:space="preserve"><value>Een idee om te bewaren</value></data>
@@ -44,7 +44,7 @@
 <data name="Welcome_Sort" xml:space="preserve"><value>Geef elke gedachte een plek.</value></data>
 <data name="Welcome_Clear" xml:space="preserve"><value>Doe het, bewaar het of laat het los.</value></data>
 <data name="Welcome_LocalTitle" xml:space="preserve"><value>Even over je gedachten</value></data>
-<data name="Welcome_LocalText" xml:space="preserve"><value>Je lijst staat in deze browser op dit apparaat. Als je browsergegevens wist, verdwijnt je lijst. Er is geen account, cloudsynchronisatie of automatische back-up.</value></data>
+<data name="Welcome_LocalText" xml:space="preserve"><value>Je gedachten, concepten, categorieën en instellingen worden bij je account op de server opgeslagen. Je kunt ze op een ander apparaat openen door in te loggen. Je hebt internet nodig om te laden en op te slaan.</value></data>
 <data name="Welcome_Acknowledge" xml:space="preserve"><value>Ik begrijp hoe mijn gedachten worden bewaard.</value></data>
 <data name="Welcome_Start" xml:space="preserve"><value>Maak een beetje ruimte</value></data>
 <data name="Review_Title" xml:space="preserve"><value>Een plek voor elke gedachte.</value></data>
@@ -106,9 +106,9 @@
 <data name="Confirm_Title" xml:space="preserve"><value>Deze gedachte voorgoed verwijderen?</value></data>
 <data name="Confirm_Text" xml:space="preserve"><value>Dit verwijdert de gedachte definitief. Je kunt dit niet ongedaan maken.</value></data>
 <data name="Confirm_AllTitle" xml:space="preserve"><value>Alle Nagapie-gegevens verwijderen?</value></data>
-<data name="Confirm_AllText" xml:space="preserve"><value>Je gedachten, concept, categorieën en instellingen worden uit deze browser verwijderd. Bewaar je licentiesleutel om opnieuw te ontgrendelen.</value></data>
+<data name="Confirm_AllText" xml:space="preserve"><value>Alle braindumps, gedachten, concepten, categorieën en instellingen in je account worden verwijderd. Je account blijft bestaan. Bewaar je licentiesleutel om opnieuw te ontgrendelen.</value></data>
 <data name="Consent_Title" xml:space="preserve"><value>Een beetje hulp bij het ordenen</value></data>
-<data name="Consent_Text" xml:space="preserve"><value>Je volledige braindump en categorienamen worden naar {0} gestuurd voor suggesties voor gedachten, categorieën en tijdvakken. Nagapie bewaart die inhoud niet in een serverdatabase of gewone logs. Je opgeslagen lijst blijft hier.</value></data>
+<data name="Consent_Text" xml:space="preserve"><value>Je volledige braindump en categorienamen worden naar {0} gestuurd voor suggesties voor gedachten, categorieën en tijdvakken. Je concepten en opgeslagen gedachten staan in de database bij je account. De inhoud wordt niet in gewone applicatielogs bewaard.</value></data>
 <data name="Consent_Provider" xml:space="preserve"><value>Lees de privacyinformatie van de aanbieder</value></data>
 <data name="Consent_Agree" xml:space="preserve"><value>Akkoord en ordenen</value></data>
 <data name="Consent_Without" xml:space="preserve"><value>Doorgaan zonder AI</value></data>
@@ -132,7 +132,7 @@
 <data name="Settings_Language" xml:space="preserve"><value>Taal</value></data>
 <data name="Settings_Categories" xml:space="preserve"><value>Jouw categorieën</value></data>
 <data name="Settings_CategoriesHint" xml:space="preserve"><value>Vijf vaste plekken, plus wat je zelf wilt toevoegen.</value></data>
-<data name="Settings_Data" xml:space="preserve"><value>Jouw gedachten, jouw apparaat</value></data>
+<data name="Settings_Data" xml:space="preserve"><value>Jouw gegevens, jouw account</value></data>
 <data name="Settings_DeleteAll" xml:space="preserve"><value>Wis al mijn gegevens</value></data>
 <data name="Settings_Ai" xml:space="preserve"><value>AI-ordening</value></data>
 <data name="Settings_ConsentOn" xml:space="preserve"><value>Je hebt toestemming gegeven om nieuwe braindumps met AI te ordenen.</value></data>
@@ -152,14 +152,14 @@
 <data name="Access_NotConfigured" xml:space="preserve"><value>Kopen is nog niet beschikbaar.</value></data>
 <data name="Access_Count" xml:space="preserve"><value>van 3 gratis braindumps gebruikt</value></data>
 <data name="Privacy_Title" xml:space="preserve"><value>Jouw privacy</value></data>
-<data name="Privacy_Intro" xml:space="preserve"><value>Nagapie bewaart je lijst in deze browser. Deze testversie heeft geen accounts, analytics, cloudsynchronisatie of automatische back-up.</value></data>
-<data name="Privacy_Ai" xml:space="preserve"><value>Als je instemt met automatisch ordenen, gaan je tekst en categorienamen via onze API naar de ingestelde AI-aanbieder. Nagapie bewaart de inhoud niet in een serverdatabase of applicatielogs. Technische verzoekgegevens kunnen worden gelogd. Je kunt toestemming intrekken in Instellingen.</value></data>
+<data name="Privacy_Intro" xml:space="preserve"><value>Nagapie bewaart je e-mailadres en een beveiligde wachtwoordhash, plus je braindumps, gedachten, concepten, categorieën en instellingen in een SQL-database. Je gegevens zijn gekoppeld aan je account. Er worden geen gedachten opgeslagen in browseropslag. Je browser gebruikt een beveiligde sessiecookie om je aan te melden.</value></data>
+<data name="Privacy_Ai" xml:space="preserve"><value>Als je toestemming geeft voor automatisch ordenen, stuurt onze API je tekst en categorienamen naar de ingestelde AI-provider. Je concepten en opgeslagen braindumps staan bij je account in SQL. De inhoud wordt niet in applicatielogs bewaard; technische aanvraaggegevens kunnen wel worden gelogd. Je kunt je AI-toestemming intrekken bij Instellingen.</value></data>
 <data name="Privacy_Test" xml:space="preserve"><value>Vóór publieke lancering moeten bedrijfsgegevens, bewaartermijnen en trainingsvoorwaarden van de aanbieder, verwerkingsregio en logretentie worden ingevuld. Deze pagina beschrijft de testversie; het is nog geen definitieve privacyverklaring.</value></data>
 <data name="Terms_Title" xml:space="preserve"><value>Over het gebruik van Nagapie</value></data>
 <data name="Terms_Text" xml:space="preserve"><value>Nagapie helpt je gedachten vast te leggen en te ordenen. AI-suggesties kunnen onjuist zijn; controleer ze voordat je opslaat. Tijdvakken veranderen niet automatisch en de app verstuurt geen herinneringen. Bewaar belangrijke informatie ook ergens anders.</value></data>
 <data name="Terms_Test" xml:space="preserve"><value>Dit is een testversie. Definitieve voorwaarden, bedrijfsgegevens, aankoopvoorwaarden en belastinginformatie moeten vóór verkoop worden ingevuld.</value></data>
-<data name="Error_STORAGE" xml:space="preserve"><value>Je wijzigingen konden niet worden opgeslagen. Je tekst staat er nog. Controleer de beschikbare browseropslag en probeer opnieuw.</value></data>
-<data name="Error_STORAGE_INVALID" xml:space="preserve"><value>We konden de opgeslagen gegevens niet veilig lezen. Ze zijn niet overschreven. Neem contact op voordat je wist als je gegevens wilt herstellen.</value></data>
+<data name="Error_STORAGE" xml:space="preserve"><value>Opslaan is niet gelukt. Controleer je verbinding en probeer opnieuw. Niet-opgeslagen tekst gaat verloren als je deze pagina sluit.</value></data>
+<data name="Error_STORAGE_INVALID" xml:space="preserve"><value>Je accountgegevens konden niet veilig worden geladen. Er is niets overschreven. Probeer de pagina opnieuw te laden.</value></data>
 <data name="Error_AI_NOT_CONFIGURED" xml:space="preserve"><value>Automatisch ordenen is nog niet aangesloten. Bewaar dit als één gedachte of probeer het later opnieuw.</value></data>
 <data name="Error_AI_UNAVAILABLE" xml:space="preserve"><value>Ordenen is nu niet beschikbaar. Je tekst blijft hier staan. Probeer opnieuw of bewaar alles als één gedachte.</value></data>
 <data name="Error_AI_TIMEOUT" xml:space="preserve"><value>Het ordenen duurde te lang. Probeer opnieuw of bewaar dit als één gedachte.</value></data>
@@ -170,7 +170,7 @@
 <data name="Error_LICENSE_INVALID" xml:space="preserve"><value>Die licentiesleutel is niet herkend. Controleer de sleutel en probeer opnieuw.</value></data>
 <data name="Error_LICENSE_UNAVAILABLE" xml:space="preserve"><value>Licentiecontrole is niet beschikbaar. Probeer het later opnieuw.</value></data>
 <data name="Error_UNEXPECTED_ERROR" xml:space="preserve"><value>Er ging iets mis. Probeer het opnieuw.</value></data>
-<data name="Error_OFFLINE" xml:space="preserve"><value>Internet is nodig om je braindump te ordenen. Je tekst blijft op dit apparaat bewaard.</value></data>
+<data name="Error_OFFLINE" xml:space="preserve"><value>Je hebt internet nodig om je gegevens te laden, te ordenen en op te slaan. Sluit deze pagina niet als je tekst nog niet is opgeslagen.</value></data>
 <data name="Error_CALENDAR" xml:space="preserve"><value>Kies een eindtijd na de begintijd.</value></data>
 <data name="Error_MERGE" xml:space="preserve"><value>Deze gedachten zijn te lang om samen te voegen.</value></data>
 <data name="NotFound_Title" xml:space="preserve"><value>Even van het pad.</value></data>
@@ -182,4 +182,25 @@
 <data name="Error_AI_RATE_LIMITED" xml:space="preserve"><value>De AI-provider ontvangt te veel aanvragen. Probeer het over een minuut opnieuw. Je tekst blijft hier staan.</value></data>
 <data name="Error_AI_MODEL" xml:space="preserve"><value>Het ingestelde AI-model is niet beschikbaar voor deze API-sleutel. Laat het model in de serverinstellingen controleren. Je tekst blijft hier staan.</value></data>
 <data name="Error_AI_REQUEST_INVALID" xml:space="preserve"><value>De AI-provider kan deze aanvraag niet verwerken. Laat de AI-configuratie van de app controleren. Je tekst blijft hier staan.</value></data>
+<data name="Account_Register" xml:space="preserve"><value>Account aanmaken</value></data>
+<data name="Account_Login" xml:space="preserve"><value>Inloggen</value></data>
+<data name="Account_Intro" xml:space="preserve"><value>Je gedachten worden veilig bij je account opgeslagen. Log in om je eigen lijst te openen.</value></data>
+<data name="Account_Email" xml:space="preserve"><value>E-mailadres</value></data>
+<data name="Account_Password" xml:space="preserve"><value>Wachtwoord</value></data>
+<data name="Account_Confirm" xml:space="preserve"><value>Herhaal je wachtwoord</value></data>
+<data name="Account_PasswordHint" xml:space="preserve"><value>Gebruik minimaal 12 tekens, bijvoorbeeld een lange wachtzin.</value></data>
+<data name="Account_HaveAccount" xml:space="preserve"><value>Ik heb al een account</value></data>
+<data name="Account_CreateAccount" xml:space="preserve"><value>Nog geen account? Maak er een aan</value></data>
+<data name="Account_Logout" xml:space="preserve"><value>Uitloggen</value></data>
+<data name="Account_Dumps" xml:space="preserve"><value>Braindumps</value></data>
+<data name="Account_NoDumps" xml:space="preserve"><value>Je hebt nog geen braindumps opgeslagen.</value></data>
+<data name="Account_Retry" xml:space="preserve"><value>Opnieuw laden</value></data>
+<data name="Error_ACCOUNT_INPUT" xml:space="preserve"><value>Vul een geldig e-mailadres en een wachtwoord van 12 tot 128 tekens in.</value></data>
+<data name="Error_REGISTER_FAILED" xml:space="preserve"><value>Je account kon niet worden aangemaakt. Controleer je gegevens of probeer in te loggen als je al een account hebt.</value></data>
+<data name="Error_LOGIN_FAILED" xml:space="preserve"><value>Inloggen is niet gelukt. Controleer je gegevens. Na meerdere mislukte pogingen moet je 15 minuten wachten.</value></data>
+<data name="Error_PASSWORD_MISMATCH" xml:space="preserve"><value>De wachtwoorden zijn niet hetzelfde.</value></data>
+<data name="Error_ACCOUNT_UNAVAILABLE" xml:space="preserve"><value>We kunnen geen verbinding maken. Controleer je internetverbinding en probeer opnieuw.</value></data>
+<data name="Error_SESSION_CHANGED" xml:space="preserve"><value>Je sessie is verlopen of het account is gewijzigd. Laad de pagina opnieuw en log in.</value></data>
+<data name="Error_SAVE_CONFLICT" xml:space="preserve"><value>Deze gegevens zijn in een ander venster gewijzigd. Kopieer je nieuwe tekst voordat je de pagina opnieuw laadt. Er is niets overschreven.</value></data>
+<data name="Dump_NotSaved" xml:space="preserve"><value>Nog niet opgeslagen</value></data>
 </root>

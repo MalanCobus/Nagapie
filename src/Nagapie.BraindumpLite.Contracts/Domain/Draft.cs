@@ -1,4 +1,4 @@
-namespace Nagapie.BraindumpLite.Client.Domain;
+namespace Nagapie.BraindumpLite.Contracts.Domain;
 
 public sealed record Draft
 {

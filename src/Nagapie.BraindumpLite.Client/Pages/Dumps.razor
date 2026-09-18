@@ -1,0 +1,24 @@
+@page "/dumps"
+@inherits PageBase
+
+<PageTitle>Nagapie — @L["Account_Dumps"]</PageTitle>
+<h1>@L["Account_Dumps"]</h1>
+<ErrorMessage Code="@Error" />
+@if (dumps is null && Error is null)
+{
+    <p>@L["Common_Loading"]</p>
+}
+else if (dumps is { Count: 0 })
+{
+    <p>@L["Account_NoDumps"]</p>
+}
+else if (dumps is not null)
+{
+    @foreach (var dump in dumps)
+    {
+        <article class="settings-card">
+            <small>@dump.SavedAtUtc.ToLocalTime().ToString("g")</small>
+            <p style="white-space: pre-wrap">@dump.Text</p>
+        </article>
+    }
+}

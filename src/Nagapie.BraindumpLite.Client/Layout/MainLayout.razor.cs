@@ -1,39 +1,60 @@
-using Microsoft.JSInterop;
-
+using Nagapie.BraindumpLite.Contracts;
 namespace Nagapie.BraindumpLite.Client.Layout;
 
 public partial class MainLayout
 {
-    private bool reset;
-    private string? renderedLocation;
+    private bool accountReady;
+    private string? accountError;
+    private string? accountId;
+
     protected override async Task OnInitializedAsync()
     {
         State.Changed += Update;
-        await State.InitializeAsync();
+        Account.Changed += AccountChanged;
+        try
+        {
+            await Accounts.RefreshAsync();
+            if (Account.IsAuthenticated)
+            {
+                await State.InitializeAsync();
+            }
+        }
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+        {
+            accountError = ErrorCodes.AccountUnavailable;
+        }
+        finally { accountReady = true; }
+    }
+
+    private void AccountChanged()
+    {
+        if (accountId != Account.Session?.UserId)
+        {
+            accountId = Account.Session?.UserId;
+            State.ResetMemory();
+        }
+        Update();
     }
 
     private void Update() => InvokeAsync(StateHasChanged);
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (renderedLocation != Nav.Uri)
-        {
-            renderedLocation = Nav.Uri;
-            await JS.InvokeVoidAsync("nagapie.pageTop");
-        }
-    }
+    private void Reload() => Nav.NavigateTo(Nav.Uri, forceLoad: true);
 
-    private async Task ResetAsync()
+    private async Task LogoutAsync()
     {
         try
         {
-            await State.ClearAsync();
-            reset = false;
-            Nav.NavigateTo("/welcome");
+            await Accounts.SignOutAsync();
+            Nav.NavigateTo("/login", forceLoad: true);
         }
-        catch (JSException)
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
         {
+            accountError = ErrorCodes.AccountUnavailable;
         }
     }
 
-    public void Dispose() => State.Changed -= Update;
+    public void Dispose()
+    {
+        State.Changed -= Update;
+        Account.Changed -= AccountChanged;
+    }
 }

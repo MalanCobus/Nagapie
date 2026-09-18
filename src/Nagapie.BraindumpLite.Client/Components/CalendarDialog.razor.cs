@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using Nagapie.BraindumpLite.Client.Domain;
 using Nagapie.BraindumpLite.Client.Services;
 using Nagapie.BraindumpLite.Contracts;
+using Nagapie.BraindumpLite.Contracts.Domain;
 
 namespace Nagapie.BraindumpLite.Client.Components;
 

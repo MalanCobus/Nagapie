@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
-using Nagapie.BraindumpLite.Client.Domain;
 using Nagapie.BraindumpLite.Client.Services;
 using Nagapie.BraindumpLite.Contracts;
+using Nagapie.BraindumpLite.Contracts.Domain;
 
 namespace Nagapie.BraindumpLite.Client.Tests;
 

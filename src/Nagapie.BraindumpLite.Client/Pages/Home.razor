@@ -19,7 +19,7 @@
         <button class="button primary" @onclick="SortAsync" disabled="@(Busy || string.IsNullOrWhiteSpace(State.Draft.Text))"><Icon Name="spark"/>@L["Dump_Sort"]<Icon Name="arrow" Size="18"/></button>
     </div>
 </section>
-<div class="draft-meta"><span><span class="status-dot"></span>@(saving ? L["Dump_Saving"] : State.Draft.Text.Length > 0 ? L["Dump_Saved"] : L["Dump_Local"])</span><span><Icon Name="lock" Size="13"/>@L["Dump_Control"]</span></div>
+<div class="draft-meta"><span><span class="status-dot"></span>@(saving ? L["Dump_Saving"] : savedDraftText != State.Draft.Text ? L["Dump_NotSaved"] : State.Draft.Text.Length > 0 ? L["Dump_Saved"] : L["Dump_Local"])</span><span><Icon Name="lock" Size="13"/>@L["Dump_Control"]</span></div>
 @if (listening) { <div class="notice" role="status">@L["Speech_Listening"]</div> }
 @if (Busy) { <div class="processing" role="status"><span class="spinner"></span><div><strong>@L["Dump_Processing"]</strong><p>@L["Dump_ProcessingDetail"]</p></div><button class="text-button" @onclick="Cancel">@L["Dump_Cancel"]</button></div> }
 <ErrorMessage Code="@Error"/>

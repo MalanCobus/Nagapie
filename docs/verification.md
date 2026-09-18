@@ -1,3 +1,22 @@
+# SQL/accounts verification — 18 September 2026
+
+- 68 automated .NET tests pass in Release (23 client, 45 API/provider/account).
+- Four service-worker tests pass. The worker caches static app files only; API requests use the network.
+- Formatting verification passes and the Release API/client publish succeeds.
+- Initial EF migration applied successfully to actual SQL Server LocalDB, database Nagapie.
+- Browser walkthrough against SQL Server: registration, onboarding, draft save, manual review/commit, list reload, original dump history, logout and login.
+- Synthetic browser-test account and its data removed afterward. Local schema remains ready for normal use.
+- Relational integration tests verify anonymous denial, per-user isolation, wrong-owner headers, CSRF, persisted data after login, stale-write/delete conflicts, original-dump retention, per-user clear, invalid input, duplicate/weak registration and account lockout.
+- SQL client tests verify server reads, failed-write version preservation and no automatic overwrite on conflict.
+- No localStorage or storage bridge calls remain in application code.
+- No Azure resources provisioned or deployed. Hosted SQL connection/schema still need configuration.
+- Email verification, email password recovery, MFA and account deletion are not part of this iteration.
+- Live external AI/Payhip and the complete real-device/browser matrix were not rerun.
+
+The historical local-only checks below describe the previous build. Offline list editing is superseded: this account version requires an online server for all user data.
+
+---
+
 # Verification — 18 September 2026
 
 ## Passed

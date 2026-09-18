@@ -1,0 +1,30 @@
+@inject AccountClient Accounts
+@inject NavigationManager Navigation
+@inject IStringLocalizer<AppResources> L
+
+<section class="welcome">
+    <Botanical />
+    <h1>@L[Register ? "Account_Register" : "Account_Login"]</h1>
+    <p class="lead">@L["Account_Intro"]</p>
+    <form class="settings-card" @onsubmit="SubmitAsync" @onsubmit:preventDefault>
+        <label for="account-email">@L["Account_Email"]</label>
+        <input id="account-email" type="email" autocomplete="username" maxlength="254"
+               required @bind="email" disabled="@busy" />
+        <label for="account-password">@L["Account_Password"]</label>
+        <input id="account-password" type="password" autocomplete="@(Register ? "new-password" : "current-password")"
+               minlength="12" maxlength="128" required @bind="password" disabled="@busy" />
+        @if (Register)
+        {
+            <p>@L["Account_PasswordHint"]</p>
+            <label for="account-confirm">@L["Account_Confirm"]</label>
+            <input id="account-confirm" type="password" autocomplete="new-password"
+                   minlength="12" maxlength="128" required @bind="confirmation" disabled="@busy" />
+        }
+        <ErrorMessage Code="@error" />
+        <button type="submit" class="button primary" disabled="@busy">
+            @L[Register ? "Account_Register" : "Account_Login"]
+        </button>
+    </form>
+    <p><a href="@(Register ? "/login" : "/register")">@L[Register ? "Account_HaveAccount" : "Account_CreateAccount"]</a></p>
+</section>
+

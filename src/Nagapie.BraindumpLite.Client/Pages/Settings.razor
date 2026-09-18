@@ -1,8 +1,10 @@
 @page "/settings"
 @inherits PageBase
+@inject AccountContext Account
 <PageTitle>Nagapie — @L["Nav_Settings"]</PageTitle>
 <section class="page-heading"><p class="eyebrow">@L["Nav_Settings"]</p><h1>@L["Settings_Title"]</h1><p class="lead">@L["Settings_Subtitle"]</p></section>
 <ErrorMessage Code="@Error"/>
+<p class="account-email">@Account.Session?.Email</p>
 <section class="settings-card"><h2>@L["Settings_Language"]</h2><div class="language-switch"><button class="button @(State.Settings.Language == "nl-NL" ? "primary" : "secondary")" disabled="@Busy" @onclick='() => LanguageAsync("nl-NL")'>Nederlands</button><button class="button @(State.Settings.Language == "en-US" ? "primary" : "secondary")" disabled="@Busy" @onclick='() => LanguageAsync("en-US")'>English</button></div></section>
 <section class="settings-card"><h2>@L["Settings_Categories"]</h2><p>@L["Settings_CategoriesHint"]</p>
 @foreach (var c in State.Categories) { <div class="category-setting"><span class="category-tag @c.ColorToken">@CategoryName(c)</span>@if (!c.IsDefault) { <div><button class="text-button" @onclick="() => Rename(c)">@L["Settings_Rename"]</button><button class="icon-button" aria-label="@L["Common_Delete"]" @onclick="() => deleteCategory = c"><Icon Name="trash" Size="17"/></button></div> } else { <Icon Name="lock" Size="15"/> }</div> }

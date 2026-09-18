@@ -1,18 +1,20 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using Nagapie.BraindumpLite.Client.Domain;
 using Nagapie.BraindumpLite.Client.Services;
 using Nagapie.BraindumpLite.Contracts;
+using Nagapie.BraindumpLite.Contracts.Domain;
 
 namespace Nagapie.BraindumpLite.Client.Pages;
 
 public partial class Home
 {
     private bool consent, speechConsent, speechSupported, listening, saving;
+    private string savedDraftText = "";
     private CancellationTokenSource? debounce, processing;
     private DotNetObjectReference<Home>? reference;
     protected override void OnInitialized()
     {
+        savedDraftText = State.Draft.Text;
         if (!State.Settings.HasCompletedOnboarding)
         {
             Nav.NavigateTo("/welcome");
@@ -51,7 +53,9 @@ public partial class Home
         try
         {
             await Task.Delay(400, token);
+            var textToSave = State.Draft.Text;
             await State.SaveDraftAsync();
+            savedDraftText = textToSave;
             saving = false;
         }
         catch (OperationCanceledException)
@@ -67,12 +71,23 @@ public partial class Home
             Error = ex.Message;
             saving = false;
         }
+        catch (ApiClientException exception)
+        {
+            Error = exception.Code;
+            saving = false;
+        }
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+        {
+            Error = ErrorCodes.Storage;
+            saving = false;
+        }
     }
 
     private Task ExampleAsync() => Run(async () =>
     {
         State.Draft.Text = L["Dump_ExampleText"];
         await State.SaveDraftAsync();
+        savedDraftText = State.Draft.Text;
     });
     private async Task SortAsync()
     {
@@ -235,7 +250,7 @@ public partial class Home
                 await State.SaveDraftAsync();
             }
         }
-        catch (Exception ex) when (ex is JSException or InvalidDataException)
+        catch (Exception ex) when (ex is JSException or InvalidDataException or ApiClientException or HttpRequestException or TaskCanceledException)
         {
         }
 

@@ -4,22 +4,31 @@
 @inject IStringLocalizer<AppResources> L
 @inject NavigationManager Nav
 @inject IJSRuntime JS
+@inject AccountClient Accounts
+@inject AccountContext Account
 <a class="skip-link" href="#main">@L["Nav_Skip"]</a>
 <header class="site-header">
     <a href="/" class="brand" aria-label="Nagapie"><span class="brand-mark"><Icon Name="leaf" Size="29"/></span>nagapie<span class="brand-dot">.</span></a>
     <nav class="top-nav">
+    @if (Account.IsAuthenticated)
+    {
         <NavLink href="/" Match="NavLinkMatch.All" aria-label="@L["Nav_Dump"]"><Icon Name="edit"/><span>@L["Nav_Dump"]</span></NavLink>
         <NavLink href="/list" aria-label="@L["Nav_List"]"><Icon Name="list"/><span>@L["Nav_List"]</span></NavLink>
         <NavLink href="/settings" class="settings-link" aria-label="@L["Nav_Settings"]"><Icon Name="settings"/></NavLink>
+        <NavLink href="/dumps">@L["Account_Dumps"]</NavLink>
+        <button class="text-button" @onclick="LogoutAsync">@L["Account_Logout"]</button>
+    }
     </nav>
 </header>
 <main id="main" class="main-content">
-@if (!State.Loaded) { <div class="loading-screen"><Icon Name="leaf" Size="44"/><p>@L["Common_Loading"]</p></div> }
+@if (new Uri(Nav.Uri).AbsolutePath is "/privacy" or "/terms") { @Body }
+else if (!accountReady) { <div class="loading-screen"><Icon Name="leaf" Size="44"/><p>@L["Common_Loading"]</p></div> }
+else if (accountError is not null) { <ErrorMessage Code="@accountError"/><button class="button secondary" @onclick="Reload">@L["Account_Retry"]</button> }
+else if (!Account.IsAuthenticated) { <AccountForm Register="@(new Uri(Nav.Uri).AbsolutePath == "/register")" /> }
+else if (!State.Loaded) { <div class="loading-screen"><p>@L["Common_Loading"]</p></div> }
 else if (State.StorageFailed) {
     <ErrorMessage Code="STORAGE_INVALID"/>
-    <a href="mailto:hello@nagapie.nl">@L["Settings_Contact"]</a>
-    <button class="button danger" @onclick="() => reset = true">@L["Settings_DeleteAll"]</button>
-    @if (reset) { <Modal Title="@L["Confirm_AllTitle"]" Closed="() => reset = false"><p>@L["Confirm_AllText"]</p><div class="modal-actions"><button class="button secondary" autofocus @onclick="() => reset = false">@L["Common_Cancel"]</button><button class="button danger" @onclick="ResetAsync">@L["Common_Delete"]</button></div></Modal> }
+    <button class="button secondary" @onclick="Reload">@L["Account_Retry"]</button>
 }
 else { @Body }
 </main>

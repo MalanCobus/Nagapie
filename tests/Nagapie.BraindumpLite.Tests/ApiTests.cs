@@ -84,13 +84,13 @@ public class ApiTests
     {
         builder.UseEnvironment("Development");
         builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?> { ["Access:PaywallEnabled"] = paywall.ToString(), ["AiProvider:ApiKey"] = "", ["UnlockTokens:SigningKey"] = new string('a', 48) }));
-        builder.ConfigureServices(services => services.AddSingleton<IAiBrainDumpProcessor, FakeAi>());
+        builder.ConfigureServices(services => { AccountTestSupport.UseTestDatabase(services); services.AddSingleton<IAiBrainDumpProcessor, FakeAi>(); });
     });
     [Fact]
     public async Task EndpointValidatesAndReturnsStructuredResult()
     {
         using var factory = Factory();
-        using var client = factory.CreateClient();
+        using var client = await AccountTestSupport.CreateUserAsync(factory);
         var valid = await client.PostAsJsonAsync("/api/dumps/process", Request());
         Assert.Equal(HttpStatusCode.OK, valid.StatusCode);
         Assert.Single((await valid.Content.ReadFromJsonAsync<ProcessDumpResponse>())!.Items);
@@ -105,13 +105,13 @@ public class ApiTests
     public async Task TestModeNeverBlocksAndProductionEnforcesSoftLimit()
     {
         using var test = Factory();
-        using var client = test.CreateClient();
+        using var client = await AccountTestSupport.CreateUserAsync(test);
         Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/dumps/process", Request() with
         {
             SuccessfulDumpCount = 10
         })).StatusCode);
         using var production = Factory(true);
-        using var paidClient = production.CreateClient();
+        using var paidClient = await AccountTestSupport.CreateUserAsync(production);
         Assert.Equal(HttpStatusCode.PaymentRequired, (await paidClient.PostAsJsonAsync("/api/dumps/process", Request() with
         {
             SuccessfulDumpCount = 3
@@ -128,7 +128,7 @@ public class ApiTests
     public async Task SecretsNeverAppearInPublicConfig()
     {
         using var factory = Factory();
-        using var client = factory.CreateClient();
+        using var client = await AccountTestSupport.CreateUserAsync(factory);
         var text = await client.GetStringAsync("/api/config");
         Assert.DoesNotContain("ApiKey", text);
         Assert.DoesNotContain("SigningKey", text);
@@ -139,7 +139,7 @@ public class ApiTests
     public async Task RateLimitReturns429()
     {
         using var factory = Factory();
-        using var client = factory.CreateClient();
+        using var client = await AccountTestSupport.CreateUserAsync(factory);
         HttpResponseMessage? response = null;
         for (int i = 0; i < 16; i++)
         {
@@ -154,8 +154,8 @@ public class ApiTests
     [Fact]
     public async Task MissingKeyReturnsActionableFailure()
     {
-        using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b => b.ConfigureAppConfiguration((_, c) => c.AddInMemoryCollection(new Dictionary<string, string?> { ["AiProvider:ApiKey"] = "", ["Access:PaywallEnabled"] = "false" })));
-        using var client = factory.CreateClient();
+        using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b => b.ConfigureServices(AccountTestSupport.UseTestDatabase).ConfigureAppConfiguration((_, c) => c.AddInMemoryCollection(new Dictionary<string, string?> { ["AiProvider:ApiKey"] = "", ["Access:PaywallEnabled"] = "false" })));
+        using var client = await AccountTestSupport.CreateUserAsync(factory);
         var response = await client.PostAsJsonAsync("/api/dumps/process", Request());
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         Assert.Equal("AI_NOT_CONFIGURED", (await response.Content.ReadFromJsonAsync<ApiError>())!.Code);

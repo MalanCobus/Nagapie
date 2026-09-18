@@ -9,8 +9,10 @@ public static class NagapieEndpoints
     {
         endpoints.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
         endpoints.MapGet("/api/config", GetConfiguration);
-        endpoints.MapPost("/api/dumps/process", ProcessDumpAsync).RequireRateLimiting("api");
-        endpoints.MapPost("/api/licenses/verify", VerifyLicenseAsync).RequireRateLimiting("api");
+        endpoints.MapPost("/api/dumps/process", ProcessDumpAsync).RequireRateLimiting("api")
+            .RequireAuthorization().AddEndpointFilter<Nagapie.BraindumpLite.Api.Accounts.AccountRequestFilter>();
+        endpoints.MapPost("/api/licenses/verify", VerifyLicenseAsync).RequireRateLimiting("api")
+            .RequireAuthorization().AddEndpointFilter<Nagapie.BraindumpLite.Api.Accounts.AccountRequestFilter>();
         endpoints.Map("/api/{**path}", () => Results.NotFound());
         return endpoints;
     }

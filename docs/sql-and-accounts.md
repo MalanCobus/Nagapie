@@ -18,7 +18,7 @@ The browser still uses session/security cookies and may cache public app files. 
 
 The local `Nagapie` database has been created on this machine using SQL Server LocalDB. Set the API as the startup project and run the normal `http` or `https` profile. Open the website and create your own account.
 
-On a new development machine, install SQL Server Express LocalDB through Visual Studio Installer (Data storage and processing), then run this once from the solution folder in Visual Studio's terminal:
+On a new development machine, install SQL Server Express LocalDB through Visual Studio Installer (Data storage and processing), then start the API. It creates the local database and applies pending migrations automatically. To apply migrations without starting the website, you can still run this from the solution folder:
 
 ```powershell
 dotnet run --project src/Nagapie.BraindumpLite.Api -- --migrate
@@ -35,8 +35,8 @@ Your existing hosted version is unchanged. Do these steps before publishing the 
 3. Create or select an Azure SQL logical server in the same region as the app. For a straightforward initial setup, configure SQL authentication and keep its administrator credentials private.
 4. Check the **free database offer** if your subscription offers it. Choose **Auto-pause the database until next month** when the free amount is exhausted if you want to avoid paid overage. If no free offer is shown, review the price before creating anything. App Service F1 does not include SQL hosting automatically. See [Microsoft's free-offer instructions](https://learn.microsoft.com/en-us/azure/azure-sql/database/free-offer?view=azuresql).
 5. Configure the SQL server's network firewall to allow your app's outbound IP addresses (shown in App Service **Properties**) and your development computer's IP while applying the schema. Do not allow every public IP. The browser never connects directly to SQL.
-6. In Visual Studio **SQL Server Object Explorer**, add the Azure SQL server, connect to the `Nagapie` database, open a new query, and run `docs/sql-schema.sql`. This generated script creates the Identity and application tables and can be rerun because it checks migration history. Use schema-deployment credentials for this step.
-7. Set up a dedicated database user for the app with read/write permissions on these tables, rather than leaving the app running as the server administrator. The application does not run migrations at normal startup.
+6. In Visual Studio **SQL Server Object Explorer**, add the Azure SQL server and connect to the `Nagapie` database as its administrator. There is no need to run `docs/sql-schema.sql`; startup migrations create and update the tables.
+7. Set up a dedicated database user for the app with read/write and schema-change permissions as described below. Existing installations using `nagapie_app` need the one-time additional permission before publishing this version.
 8. In your Azure App Service, open **Settings → Environment variables → App settings**. Add `ConnectionStrings__Nagapie` (two underscores) using the ADO.NET connection string for that database and application user. Keep `Encrypt=True` and `TrustServerCertificate=False` for Azure SQL.
 9. Save the settings, then publish the **API** project from Visual Studio using the existing profile.
 10. Open the website, register, save a test thought, sign out, and sign back in. Register another test user and confirm their list starts empty.
@@ -51,9 +51,17 @@ Azure SQL is a separate resource. No Azure database or paid plan was provisioned
 
 ## Schema updates and deployment
 
-EF Core migrations are under `src/Nagapie.BraindumpLite.Api/Data/Migrations`. Apply migrations deliberately before starting a version that needs them; do not run multiple web instances racing to change the schema. Back up the database before future migrations. `docs/sql-schema.sql` is generated from the initial migration.
+EF Core migrations are under `src/Nagapie.BraindumpLite.Api/Data/Migrations`. Startup automatically applies pending migrations before serving requests. EF Core's database migration lock coordinates concurrent migration runners; migration history prevents reapplying completed migrations. If migration fails, startup fails rather than serving an incompatible schema. This does not coordinate old app instances still serving traffic: use backward-compatible migrations or stop the app during breaking schema changes. Review migrations and back up data before changes that remove or transform stored data. Developers still need to generate and include migration files when the model changes; startup does not invent migrations.
 
-The API supports `--migrate` as a setup-only mode and exits afterward. On a deployment machine, it uses the configured connection string and therefore needs schema-change permissions. The normal web process only needs read/write access.
+For an existing `nagapie_app` account with `db_datareader` and `db_datawriter`, run this **once**, as administrator, in the Azure `Nagapie` database:
+
+```sql
+ALTER ROLE db_ddladmin ADD MEMBER [nagapie_app];
+```
+
+This allows the app to change database schema. It is broader access than read/write and is the tradeoff for startup migrations. Keep the dedicated account scoped to this database; do not use the server administrator connection in the app. The existing migrations only need ordinary table/index schema changes plus their existing read/write permissions. Reassess permissions if future migrations manage users or other privileged objects.
+
+`Database:ApplyMigrationsOnStartup` defaults to `true`. In Azure, set `Database__ApplyMigrationsOnStartup=false` to disable automatic migration if moving to a separate deployment migrator later. The API still supports `--migrate` as a setup-only mode that always applies migrations and exits. `docs/sql-schema.sql` remains an optional script for the initial schema; it is not the automatic update mechanism. Azure SQL database provisioning, firewall rules, and credentials remain one-time setup tasks.
 
 Azure App Service on Windows normally persists ASP.NET Data Protection keys in its HOME folder. Preserve those keys across restarts and instances so authentication cookies stay valid. See [Microsoft's key-storage guidance](https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/configuration/default-settings?view=aspnetcore-10.0).
 

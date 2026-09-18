@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Nagapie.BraindumpLite.Api;
 using Nagapie.BraindumpLite.Api.Accounts;
 using Nagapie.BraindumpLite.Api.Data;
@@ -7,10 +6,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddNagapieServices();
 builder.AddSqlAccounts();
 var app = builder.Build();
-if (args.Contains("--migrate"))
+var migrateOnly = args.Contains("--migrate");
+if (migrateOnly || builder.Configuration.GetValue("Database:ApplyMigrationsOnStartup", true))
 {
-    using var scope = app.Services.CreateScope();
-    await scope.ServiceProvider.GetRequiredService<NagapieDbContext>().Database.MigrateAsync();
+    await using var scope = app.Services.CreateAsyncScope();
+    await scope.ServiceProvider.GetRequiredService<IDatabaseMigrator>()
+        .MigrateAsync(app.Lifetime.ApplicationStopping);
+}
+if (migrateOnly)
+{
     return;
 }
 if (!app.Environment.IsDevelopment())

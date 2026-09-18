@@ -16,7 +16,7 @@
 - [ ] Test multi-device conflict messages and session changes with real browsers.
 - [ ] Enable payment only after the above checks pass.
 
-- [ ] Create Azure SQL, apply the migration, and configure ConnectionStrings__Nagapie before publishing.
+- [ ] Create Azure SQL, grant the app database user schema-change permissions, and configure ConnectionStrings__Nagapie before publishing. Verify automatic startup migrations succeed.
 - [ ] Configure database backup/restore and durable authentication key storage.
 - [ ] Add email verification and password recovery with a configured email provider before wider public account registration.
 - [ ] Decide and implement account deletion and retention policies.

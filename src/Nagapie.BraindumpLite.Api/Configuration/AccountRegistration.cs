@@ -55,5 +55,6 @@ public static class AccountRegistration
                 ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
         });
         builder.Services.AddScoped<IUserDocumentStore, SqlUserDocumentStore>();
+        builder.Services.AddScoped<IDatabaseMigrator, SqlDatabaseMigrator>();
     }
 }

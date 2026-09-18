@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.JSInterop;
 using Nagapie.BraindumpLite.Client.Services;
 using Nagapie.BraindumpLite.Contracts.Domain;
+using Nagapie.BraindumpLite.Contracts;
 
 namespace Nagapie.BraindumpLite.Client.Tests;
 
@@ -11,6 +12,52 @@ public class StateTests
 {
     private sealed class MemoryStorage : IUserDataStore
     {
+        public Task<AppSettings> ReadSettingsAsync() => ReadOrNewAsync<AppSettings>("settings");
+        public Task SaveSettingsAsync(AppSettings value) => WriteAsync("settings", value);
+        public Task<AccessState> ReadAccessAsync() => ReadOrNewAsync<AccessState>("access");
+        public Task SaveAccessAsync(AccessState value) => WriteAsync("access", value);
+        public Task<Draft> ReadDraftAsync() => ReadOrNewAsync<Draft>("draft");
+        public Task SaveDraftAsync(Draft value) => WriteAsync("draft", value);
+        public Task DeleteDraftAsync() => RemoveAsync("draft");
+        public async Task<List<Category>> ReadCategoriesAsync() => await ReadAsync<List<Category>>("categories") ?? CategoryRules.CreateDefaults();
+        public async Task SaveCategoryAsync(Category category)
+        {
+            await Task.Yield();
+            await WriteAsync("categories", CategoryRules.Save(await ReadCategoriesAsync(), category));
+        }
+        public async Task DeleteCategoryAsync(Guid id) => await WriteAsync("categories", (await ReadCategoriesAsync()).Where(category => category.Id != id).ToList());
+        public async Task<ThoughtPage> QueryThoughtsAsync(ThoughtQuery query)
+        {
+            var store = await ReadOrNewAsync<ItemStore>("items");
+            var draft = await ReadDraftAsync();
+            return new(store.Items, Guid.Empty, [], false, store.AiDumps.Count, store.SavedDumps.Contains(draft.Id));
+        }
+        public async Task<List<BrainDumpItem>> CommitDraftAsync(Draft draft)
+        {
+            var store = await ReadOrNewAsync<ItemStore>("items");
+            var next = ThoughtRules.Commit(store, draft, await ReadCategoriesAsync(), DateTimeOffset.UtcNow);
+            await WriteAsync("items", next);
+            return next.Items.Where(item => item.SourceDumpId == draft.Id).ToList();
+        }
+        public async Task<BrainDumpItem> UpdateThoughtAsync(BrainDumpItem item)
+        {
+            await WriteAsync("items", ThoughtRules.Update(await ReadOrNewAsync<ItemStore>("items"), item, DateTimeOffset.UtcNow));
+            return item;
+        }
+        public async Task DeleteThoughtAsync(Guid id)
+        {
+            var store = await ReadOrNewAsync<ItemStore>("items");
+            await WriteAsync("items", store with
+            {
+                Items = store.Items.Where(item => item.Id != id).ToList()
+            });
+        }
+        public async Task ClearAsync()
+        {
+            foreach (var key in new[] { "items", "categories", "draft", "settings", "access" })
+                await RemoveAsync(key);
+        }
+        private async Task<T> ReadOrNewAsync<T>(string key) where T : class, new() => await ReadAsync<T>(key) ?? new();
         public Dictionary<string, string> Data = [];
         public string? FailWrite, FailRemove;
         public Task<T?> ReadAsync<T>(string key) => Task.FromResult(Data.TryGetValue(key, out var value) ? JsonSerializer.Deserialize<T>(value) : default);
@@ -69,6 +116,19 @@ public class StateTests
     }
 
     [Fact]
+    public async Task ConcurrentCategorySavesPreserveBothCategoriesInMemoryAndStorage()
+    {
+        var storage = new MemoryStorage();
+        var state = await Create(storage);
+        var first = new Category(Guid.NewGuid(), "custom", "First", "sage", false);
+        var second = new Category(Guid.NewGuid(), "custom", "Second", "blue", false);
+        await Task.WhenAll(state.SaveCategoryAsync(first), state.SaveCategoryAsync(second));
+        Assert.Contains(first, state.Categories);
+        Assert.Contains(second, state.Categories);
+        Assert.Equal(state.Categories, await storage.ReadCategoriesAsync());
+    }
+
+    [Fact]
     public async Task CountOnlyIncreasesAfterSuccessfulWrite()
     {
         var storage = new MemoryStorage();
@@ -77,12 +137,12 @@ public class StateTests
         storage.FailWrite = "items";
         await Assert.ThrowsAsync<JSException>(state.CommitAsync);
         Assert.Empty(state.Store.Items);
-        Assert.Empty(state.Store.AiDumps);
+        Assert.Equal(0, state.SuccessfulAiDumps);
         Assert.NotNull(state.Draft.Review);
         storage.FailWrite = null;
         await state.CommitAsync();
         Assert.Equal(2, state.Store.Items.Count);
-        Assert.Single(state.Store.AiDumps);
+        Assert.Equal(1, state.SuccessfulAiDumps);
         Assert.Null(state.Draft.Review);
         Assert.Single(state.Store.Items.Select(i => i.SourceDumpId).Distinct());
     }
@@ -100,7 +160,7 @@ public class StateTests
         storage.FailRemove = null;
         await refreshed.CommitAsync();
         Assert.Equal(2, refreshed.Store.Items.Count);
-        Assert.Single(refreshed.Store.AiDumps);
+        Assert.Equal(1, refreshed.SuccessfulAiDumps);
     }
 
     [Fact]
@@ -109,7 +169,25 @@ public class StateTests
         var state = await Create(new());
         await Review(state, false);
         await state.CommitAsync();
-        Assert.Empty(state.Store.AiDumps);
+        Assert.Equal(0, state.SuccessfulAiDumps);
+    }
+
+    [Fact]
+    public async Task StartingNewDraftAfterInterruptedCleanupDoesNotReuseOldCommitStatus()
+    {
+        var storage = new MemoryStorage();
+        var state = await Create(storage);
+        await Review(state);
+        storage.FailRemove = "draft";
+        await Assert.ThrowsAsync<JSException>(state.CommitAsync);
+        Assert.True(state.DraftCommitted);
+        state.Draft.Id = Guid.NewGuid();
+        Assert.False(state.DraftCommitted);
+        await Review(state);
+        storage.FailRemove = null;
+        await state.CommitAsync();
+        Assert.Equal(4, state.Store.Items.Count);
+        Assert.Equal(2, state.SuccessfulAiDumps);
     }
 
     [Fact]

@@ -1,92 +1,74 @@
-# SQL storage and accounts
+# SQL storage, accounts and deployment
 
-Nagapie now requires an account. Registration, login and logout are included. All saved user data lives in SQL Server or Azure SQL, not browser storage. Local browser data from the old version is neither read nor imported.
+All user content belongs to the authenticated account in SQL Server/Azure SQL. Mutations require both antiforgery protection and the matching account header. The browser retains version tokens in memory.
 
-## What is saved
+## Automatic deployment upgrades
 
-The app is named **Braindump**, under the Nagapie umbrella. Planning choices are Today, Tomorrow, Later, and a chosen calendar date. `Thoughts.PlannedDate` is a nullable SQL `date`, so a selected day does not shift with time zones. Startup moves previous `next-week` items and draft suggestions to `later`. Temporary review suggestions retain their dates in draft JSON. Today/Tomorrow remain explicit planning buckets, not automatic reminders or rolling dates.
+Normal website startup never runs migrations in production. The manually dispatched `.github/workflows/deploy.yml` publishes the application, runs `--migrate` with a separate deployment connection, and deploys to Azure only if the upgrade and import validation succeed.
 
-- Identity tables: email, password hash, account security and lockout information. Passwords are never stored as plain text.
-- `Thoughts`: one row per thought/todo, with typed text, category, planning horizon, completion, timestamps, source dump, and concurrency version.
-- `Categories`: one row per user-owned category. Composite foreign keys prevent thoughts linking to another user's category or dump.
-- `Drafts`: one current draft per user with typed text, ID, input method and AI status. Temporary review suggestions remain JSON until committed.
-- `BrainDumps`: original text, metadata and commit/AI receipts. Original history is sorted and paginated in SQL, 50 records per page.
-- `UserDocuments`: JSON remains for small preferences and access settings. Old items/categories/draft documents are retained only as an upgrade recovery archive and are no longer read or written by the app after import.
-- `RelationalAccounts`: records completed imports and a reset token that prevents stale clients restoring cleared data.
+Configure the GitHub `production` environment:
 
-Every query takes its owner from the authenticated server identity. The browser cannot choose another owner. Mutations require an antiforgery token. An account header must match the authenticated identity, so a tab opened under a different account cannot silently read or save under the newly signed-in account.
+- Secret `NAGAPIE_MIGRATION_CONNECTION`: SQL connection for a deployment identity with schema and data permissions.
+- Secret `AZURE_WEBAPP_PUBLISH_PROFILE`: the target App Service publish profile.
+- Variable `AZURE_WEBAPP_NAME`: the existing App Service name.
+- Allow the deployment runner to reach SQL using your approved network arrangement. A self-hosted runner can avoid opening SQL to public hosted runners.
 
-Each thought/category has its own version. The client sends only changed/deleted rows: two devices editing different thoughts do not conflict simply because they loaded the same list. Same-row stale writes are rejected. SQL transactions coordinate writes for each user; category deletion clears thought and draft references atomically. Reload to see another device's changes; there is no live collaboration or offline queue. The current list screen still loads all of a user's thoughts (up to the existing 5,000-item limit); the relational schema now supports future filtered/paginated list endpoints.
+The website's `ConnectionStrings__Nagapie` must use a separate identity with `db_datareader` and `db_datawriter`, without `db_ddladmin` or `db_owner`. For an existing runtime identity previously granted DDL, remove that membership after configuring the deployment identity:
 
-Delete-all clears only the signed-in user's content, including original dumps and the legacy JSON archive, while keeping the account. Reset/version tokens prevent stale edits from restoring that content.
+```sql
+ALTER ROLE db_ddladmin DROP MEMBER [nagapie_app];
+```
 
-## Publishing the relational upgrade
+The SQL Server integration test verifies runtime reads, writes, retry receipts and application locks under these restricted permissions, and verifies CREATE TABLE is denied.
 
-1. Confirm a usable Azure SQL restore point/backup before upgrading. Stop Nagapie in Azure App Service so the old application cannot write JSON during the import. Stop any other instance connected to this database too.
-2. Publish the API from Visual Studio, then start the App Service. Keep the existing SQL connection and `nagapie_app` permissions; no new SQL script is needed.
-3. Startup applies the additive `RelationalUserData` schema migration, then imports each existing account in a transaction before accepting traffic. Originals, IDs, timestamps, completion state and receipts are retained. Import markers make a restart safe. Invalid data stops startup and leaves that account's originals untouched; do not bypass the failure by deleting data.
-4. Close existing Nagapie browser tabs and reopen the website so the PWA loads the new client. Old whole-list write requests are rejected rather than silently replacing relational rows.
-5. Check a previous account's items, categories, draft and dump history; save a change and sign in again.
+EF tracks applied migrations and coordinates migration runners. Each legacy account imports in its own transaction. Validation failures log the account ID and failure type, preserve original documents, continue validating other accounts, and make the deployment command exit unsuccessfully. Existing website startup is independent of this command. Fix the reported account's legacy data with an appropriate backup/recovery procedure and rerun the deployment.
 
-Some early versions did not keep original dump text. Those source IDs become explicitly marked placeholder dump rows; no original text is invented, and placeholders are excluded from original history. The archive is a recovery copy, not a live backup: new relational changes are not written back into it. Do not roll back to the JSON-based app or run the migration's `Down` method after users start editing. Plan removal of the archive in a later reviewed migration after confirming the conversion. Individual item deletion does not rewrite the historical archive; delete-all clears it.
+Before upgrading a deployment that still writes legacy JSON, stop those old writers during conversion. Keep a restore point. Additive schema changes support the current relational app during deployment, but the older JSON app must never write during or after import. Do not run migration Down methods after users edit relational data.
 
-The browser still uses session/security cookies and may cache public app files. Neither contains saved thoughts. Unsaved text exists only in the current page's memory and is lost if the page closes before a successful save.
+This separation follows [Microsoft's migration deployment guidance](https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/applying).
 
-## Run locally from Visual Studio
+## Local setup
 
-The local `Nagapie` database has been created on this machine using SQL Server LocalDB. Set the API as the startup project and run the normal `http` or `https` profile. Open the website and create your own account.
-
-On a new development machine, install SQL Server Express LocalDB through Visual Studio Installer (Data storage and processing), then start the API. It creates the local database and applies pending migrations automatically. To apply migrations without starting the website, you can still run this from the solution folder:
+Install .NET 10 and SQL Server LocalDB, then run:
 
 ```powershell
 dotnet run --project src/Nagapie.BraindumpLite.Api -- --migrate
+dotnet run --project src/Nagapie.BraindumpLite.Api --launch-profile http
 ```
 
-The normal development configuration defaults to `(localdb)\MSSQLLocalDB`, database `Nagapie`, using your Windows identity. To use a different SQL Server, add `ConnectionStrings:Nagapie` to the API project's Manage User Secrets. Do not commit passwords.
+Development defaults to `(localdb)\\MSSQLLocalDB`, database `Nagapie`. Override `ConnectionStrings:Nagapie` through user secrets for another SQL Server. Optional `Database:ApplyMigrationsOnStartup=true` is honored only in Development; it defaults to false. Azure SQL provisioning, credentials, firewall rules and backups remain hosting setup tasks.
 
-## Set up Azure SQL before publishing this version
+## Account sign-in
 
-Your existing hosted version is unchanged. Do these steps before publishing the account-enabled app; the hosted app now requires a SQL connection and the database schema.
+Registration creates the account and signs the user in immediately. Existing accounts can sign in without confirming their email address. Email confirmation, password-reset emails and recovery screens are deferred; no email provider, SMTP credentials or AccountEmail settings are needed.
 
-1. In the Azure portal, search for **SQL databases**, then choose **Create**.
-2. Select your subscription and `nagapie-rg`. Name the database `Nagapie`.
-3. Create or select an Azure SQL logical server in the same region as the app. For a straightforward initial setup, configure SQL authentication and keep its administrator credentials private.
-4. Check the **free database offer** if your subscription offers it. Choose **Auto-pause the database until next month** when the free amount is exhausted if you want to avoid paid overage. If no free offer is shown, review the price before creating anything. App Service F1 does not include SQL hosting automatically. See [Microsoft's free-offer instructions](https://learn.microsoft.com/en-us/azure/azure-sql/database/free-offer?view=azuresql).
-5. Configure the SQL server's network firewall to allow your app's outbound IP addresses (shown in App Service **Properties**) and your development computer's IP while applying the schema. Do not allow every public IP. The browser never connects directly to SQL.
-6. In Visual Studio **SQL Server Object Explorer**, add the Azure SQL server and connect to the `Nagapie` database as its administrator. There is no need to run `docs/sql-schema.sql`; startup migrations create and update the tables.
-7. Set up a dedicated database user for the app with read/write and schema-change permissions as described below. Existing installations using `nagapie_app` need the one-time additional permission before publishing this version.
-8. In your Azure App Service, open **Settings → Environment variables → App settings**. Add `ConnectionStrings__Nagapie` (two underscores) using the ADO.NET connection string for that database and application user. Keep `Encrypt=True` and `TrustServerCertificate=False` for Azure SQL.
-9. Save the settings, then publish the **API** project from Visual Studio using the existing profile.
-10. Open the website, register, save a test thought, sign out, and sign back in. Register another test user and confirm their list starts empty.
+Keep Data Protection keys persistent and shared across app instances so authentication cookies remain usable across restarts. Account deletion and MFA remain separate product features. Passwords require 12–128 characters; five failed sign-ins lock the account for 15 minutes.
 
-Example connection-string format (replace every placeholder; do not commit the result):
+## Typed operations, concurrency and pagination
 
-```text
-Server=tcp:YOUR-SERVER.database.windows.net,1433;Initial Catalog=Nagapie;User ID=YOUR-APP-USER;Password=YOUR-PASSWORD;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;
+`IUserDataStore` exposes typed category, thought, draft and preference operations. Collection omission never means deletion. AppState serializes entire state mutations, including the final in-memory update. SQL uses per-user transaction-owned application locks plus per-row optimistic versions.
+
+Thought commands carry operation IDs. SQL persists a request hash and the original response in the same transaction as the mutation. Identical retries return that response, including its authoritative timestamps and versions; changed payloads conflict. Reset changes the account epoch and removes receipts, so old commands cannot recreate cleared content. Receipts stay server-side. Receipt response bodies can retain earlier thought text until delete-all, alongside the pre-existing legacy recovery archive; account deletion must include these stores.
+
+Thoughts are queried in SQL with page size 1–100, category/unsorted, completion and horizon filters. The list displays 50 thoughts per page with navigation and category filtering. Ordering uses creation time plus ID. Concurrent writes can move entries between offset pages; reload to refresh. Reads compare the reset epoch before and after instead of acquiring serializable range locks. Receipt history is not returned. The compatibility `items` read is bounded to the first 50 thoughts.
+
+Completion state/date consistency is validated. Creation, update and completion-transition times come from the server. Selecting the let-go category archives a thought; restoring a released thought clears that category on the server.
+
+## Trial and entitlements
+
+The server records which dump IDs successfully received AI processing and counts successful AI commits atomically. Browser counts and unlock tokens do not authorize access. Concurrent commits cannot exceed the enabled free allowance. Failed processing, canceled reviews and manual saves do not count. As designed, this is a saved-session trial, not a cap on every AI request; request rate limiting remains necessary.
+
+Payhip verification binds a license hash to one account using a unique database constraint. Another account cannot claim the same license or reuse a browser token. Clearing content preserves usage and entitlement. Earlier token holders re-enter their license to bind it to the account. Refund/revocation synchronization is not implemented; operators can revoke the server entitlement. Payments remain disabled by default.
+
+## Repeatable tests and safe diagnostics
+
+`.github/workflows/ci.yml` starts SQL Server 2022 and runs the real EF migration test on every build. The test creates a uniquely named disposable database, migrates from the legacy schema, validates import and reruns, exercises concurrent writes and restricted runtime permissions, then removes only its own database.
+
+To run the SQL test locally:
+
+```powershell
+$env:NAGAPIE_TEST_SQL = 'Server=(localdb)\\MSSQLLocalDB;Integrated Security=True;TrustServerCertificate=True'
+dotnet test
 ```
 
-Azure SQL is a separate resource. No Azure database or paid plan was provisioned by this change. Existing AI and Payhip server settings retain their names.
-
-## Schema updates and deployment
-
-EF Core migrations are under `src/Nagapie.BraindumpLite.Api/Data/Migrations`. Startup automatically applies pending migrations before serving requests. EF Core's database migration lock coordinates concurrent migration runners; migration history prevents reapplying completed migrations. If migration fails, startup fails rather than serving an incompatible schema. This does not coordinate old app instances still serving traffic: use backward-compatible migrations or stop the app during breaking schema changes. Review migrations and back up data before changes that remove or transform stored data. Developers still need to generate and include migration files when the model changes; startup does not invent migrations.
-
-For an existing `nagapie_app` account with `db_datareader` and `db_datawriter`, run this **once**, as administrator, in the Azure `Nagapie` database:
-
-```sql
-ALTER ROLE db_ddladmin ADD MEMBER [nagapie_app];
-```
-
-This allows the app to change database schema. It is broader access than read/write and is the tradeoff for startup migrations. Keep the dedicated account scoped to this database; do not use the server administrator connection in the app. The existing migrations only need ordinary table/index schema changes plus their existing read/write permissions. Reassess permissions if future migrations manage users or other privileged objects.
-
-`Database:ApplyMigrationsOnStartup` defaults to `true`. In Azure, set `Database__ApplyMigrationsOnStartup=false` to disable automatic migration if moving to a separate deployment migrator later. The API still supports `--migrate` as a setup-only mode that always applies migrations and exits. `docs/sql-schema.sql` remains an optional script for the initial schema; it is not the automatic update mechanism. Azure SQL database provisioning, firewall rules, and credentials remain one-time setup tasks.
-
-Azure App Service on Windows normally persists ASP.NET Data Protection keys in its HOME folder. Preserve those keys across restarts and instances so authentication cookies stay valid. See [Microsoft's key-storage guidance](https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/configuration/default-settings?view=aspnetcore-10.0).
-
-## Current account scope
-
-Registration accepts an email and a 12–128 character password. Five failed password attempts lock the account for 15 minutes. Sign-in uses a non-persistent, HttpOnly, SameSite cookie, with HTTPS required in production, and an eight-hour sliding expiration.
-
-Email verification, forgotten-password email delivery, account deletion and MFA are not implemented in this iteration. Configure an email provider and add verification/recovery before a wider public account launch. The existing optional trial counter remains a soft application limit; this change does not turn licensing into a fraud-resistant billing system.
-
-Automated integration tests use SQLite for registration, cookies, CSRF, ownership, row concurrency, category deletion, draft conflicts, legacy import/rollback and history paging. The relational upgrade has also been exercised against a disposable SQL Server LocalDB database seeded with the previous schema and saved data, under the app's read/write plus DDL roles.
+Without that variable the SQL-specific test is explicitly skipped; SQLite HTTP tests still run. Migration and unexpected request errors record correlation IDs, exception types, HRESULTs, SQL error numbers/state/class and method frames. Raw exception messages, SQL parameter values, passwords, connection strings and thought content are excluded.

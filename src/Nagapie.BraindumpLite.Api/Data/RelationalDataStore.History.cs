@@ -13,6 +13,8 @@ public sealed partial class RelationalDataStore
         await using var transaction = await RelationalTransactions.BeginWriteAsync(database, userId, cancellationToken);
         var account = await database.RelationalAccounts.SingleAsync(row => row.UserId == userId, cancellationToken);
         account.Epoch = Guid.NewGuid();
+        await database.OperationReceipts.Where(row => row.UserId == userId).ExecuteDeleteAsync(cancellationToken);
+        await database.ProcessedDumps.Where(row => row.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await database.Thoughts.Where(row => row.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await database.Categories.Where(row => row.UserId == userId).ExecuteDeleteAsync(cancellationToken);
         await database.BrainDumps.Where(row => row.UserId == userId).ExecuteDeleteAsync(cancellationToken);

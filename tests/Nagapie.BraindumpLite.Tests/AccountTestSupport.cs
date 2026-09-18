@@ -44,10 +44,11 @@ internal static class AccountTestSupport
         using var scope = factory.Services.CreateScope();
         await scope.ServiceProvider.GetRequiredService<NagapieDbContext>().Database.EnsureCreatedAsync();
         await RefreshAsync(client);
+        email ??= $"{Guid.NewGuid():N}@example.com";
         using var response = await client.PostAsJsonAsync("/api/account/register",
-            new CredentialsRequest(email ?? $"{Guid.NewGuid():N}@example.com", "A long test password!"));
+            new CredentialsRequest(email, "A long test password!"));
         response.EnsureSuccessStatusCode();
-        await RefreshAsync(client);
+        Assert.NotNull((await RefreshAsync(client)).UserId);
         return client;
     }
 

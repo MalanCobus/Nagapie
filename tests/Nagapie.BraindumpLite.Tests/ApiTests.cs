@@ -8,10 +8,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Nagapie.BraindumpLite.Api;
 using Nagapie.BraindumpLite.Contracts;
+using Nagapie.BraindumpLite.Api.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Nagapie.BraindumpLite.Tests;
 
-public class ApiTests
+public partial class ApiTests
 {
     private static ProcessDumpRequest Request() => new(Guid.NewGuid(), "Call the dentist today. Remember my idea.", "en-US", "text", [new(Guid.NewGuid(), "do", "Do", true)], null);
     [Theory]
@@ -102,7 +104,7 @@ public class ApiTests
     }
 
     [Fact]
-    public async Task TestModeNeverBlocksAndProductionEnforcesSoftLimit()
+    public async Task ServerUsageAndEntitlementsOverrideUntrustedBrowserClaims()
     {
         using var test = Factory();
         using var client = await AccountTestSupport.CreateUserAsync(test);
@@ -112,18 +114,31 @@ public class ApiTests
         })).StatusCode);
         using var production = Factory(true);
         using var paidClient = await AccountTestSupport.CreateUserAsync(production);
-        Assert.Equal(HttpStatusCode.PaymentRequired, (await paidClient.PostAsJsonAsync("/api/dumps/process", Request() with
-        {
-            SuccessfulDumpCount = 3
-        })).StatusCode);
-        var token = production.Services.GetRequiredService<UnlockTokens>().Issue("example");
+        // An exaggerated browser count cannot consume the trial.
         Assert.Equal(HttpStatusCode.OK, (await paidClient.PostAsJsonAsync("/api/dumps/process", Request() with
         {
-            SuccessfulDumpCount = 3,
-            UnlockToken = token
+            SuccessfulDumpCount = 999
         })).StatusCode);
+        var userId = (await AccountTestSupport.RefreshAsync(paidClient)).UserId!;
+        using var scope = production.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<NagapieDbContext>();
+        var account = await database.RelationalAccounts.SingleAsync(row => row.UserId == userId);
+        account.SuccessfulAiDumps = 3;
+        await database.SaveChangesAsync();
+        var token = production.Services.GetRequiredService<UnlockTokens>().Issue("example");
+        Assert.Equal(HttpStatusCode.PaymentRequired, (await paidClient.PostAsJsonAsync("/api/dumps/process",
+            Request() with
+            {
+                SuccessfulDumpCount = 0,
+                UnlockToken = token
+            })).StatusCode);
+        (await paidClient.PostAsync("/api/data/clear", null)).EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.PaymentRequired, (await paidClient.PostAsJsonAsync("/api/dumps/process", Request())).StatusCode);
+        await database.Entry(account).ReloadAsync();
+        account.LicenseHash = new string('a', 64);
+        await database.SaveChangesAsync();
+        Assert.Equal(HttpStatusCode.OK, (await paidClient.PostAsJsonAsync("/api/dumps/process", Request())).StatusCode);
     }
-
     [Fact]
     public async Task SecretsNeverAppearInPublicConfig()
     {

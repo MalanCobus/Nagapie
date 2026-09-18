@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Nagapie.BraindumpLite.Api.Data;
 
@@ -11,9 +12,11 @@ using Nagapie.BraindumpLite.Api.Data;
 namespace Nagapie.BraindumpLite.Api.Data.Migrations
 {
     [DbContext(typeof(NagapieDbContext))]
-    partial class NagapieDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260918180857_ReliableOperationsAndAccountAccess")]
+    partial class ReliableOperationsAndAccountAccess
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

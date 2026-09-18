@@ -4,6 +4,7 @@ namespace Nagapie.BraindumpLite.Api.Data;
 
 public interface IRelationalDataStore
 {
+    Task<ThoughtPage> QueryThoughtsAsync(string userId, ThoughtQuery query, CancellationToken cancellationToken);
     Task<UserDocumentResponse> ReadAsync(string userId, string key, CancellationToken cancellationToken);
     Task<UserDocumentResponse> SaveThoughtsAsync(string userId, SaveThoughtsRequest request, CancellationToken cancellationToken);
     Task<UserDocumentResponse> SaveCategoriesAsync(string userId, SaveCategoriesRequest request, CancellationToken cancellationToken);

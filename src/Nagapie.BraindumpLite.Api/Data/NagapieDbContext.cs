@@ -12,10 +12,23 @@ public sealed class NagapieDbContext(DbContextOptions<NagapieDbContext> options)
     public DbSet<UserCategory> Categories => Set<UserCategory>();
     public DbSet<UserDraft> Drafts => Set<UserDraft>();
     public DbSet<RelationalAccount> RelationalAccounts => Set<RelationalAccount>();
+    public DbSet<OperationReceipt> OperationReceipts => Set<OperationReceipt>();
+    public DbSet<ProcessedDump> ProcessedDumps => Set<ProcessedDump>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        builder.Entity<ProcessedDump>(entity =>
+        {
+            entity.HasKey(row => new { row.UserId, row.Id });
+            entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(row => row.UserId);
+        });
+        builder.Entity<OperationReceipt>(entity =>
+        {
+            entity.HasKey(row => new { row.UserId, row.Id });
+            entity.Property(row => row.RequestHash).HasMaxLength(64);
+            entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(row => row.UserId);
+        });
         builder.Entity<UserDocument>(entity =>
         {
             entity.HasKey(document => new { document.UserId, document.Key });
@@ -37,6 +50,8 @@ public sealed class NagapieDbContext(DbContextOptions<NagapieDbContext> options)
         {
             entity.HasKey(row => row.UserId);
             entity.Property(row => row.Epoch).IsConcurrencyToken();
+            entity.Property(row => row.LicenseHash).HasMaxLength(64);
+            entity.HasIndex(row => row.LicenseHash).IsUnique().HasFilter("[LicenseHash] IS NOT NULL");
             entity.HasOne<ApplicationUser>().WithOne().HasForeignKey<RelationalAccount>(row => row.UserId);
         });
         builder.Entity<UserCategory>(entity =>
@@ -68,6 +83,8 @@ public sealed class NagapieDbContext(DbContextOptions<NagapieDbContext> options)
             entity.HasOne<SavedBrainDump>().WithMany().HasForeignKey(row => new { row.UserId, row.SourceDumpId })
                 .OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(row => new { row.UserId, row.CompletionReason, row.PlanningHorizon, row.CreatedAtUtc });
+            if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+                entity.Property(row => row.CreatedAtUtc).HasConversion(value => value.UtcTicks, value => new DateTimeOffset(value, TimeSpan.Zero));
         });
     }
 }

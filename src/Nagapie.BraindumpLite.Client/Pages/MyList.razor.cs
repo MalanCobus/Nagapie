@@ -4,6 +4,10 @@ namespace Nagapie.BraindumpLite.Client.Pages;
 
 public partial class MyList
 {
+    protected override void OnInitialized() => filter = State.Query.Unsorted ? "unsorted" : State.Query.CategoryId?.ToString() ?? "";
+    private Task FilterAsync() => Run(() => State.LoadThoughtsAsync(new(CategoryId: Guid.TryParse(filter, out var id) ? id : null, Unsorted: filter == "unsorted")));
+    private Task PreviousAsync() => Run(() => State.LoadThoughtsAsync(State.Query with { Page = State.Query.Page - 1 }));
+    private Task NextAsync() => Run(() => State.LoadThoughtsAsync(State.Query with { Page = State.Query.Page + 1 }));
     private string filter = "";
     private BrainDumpItem? editing, deleting, calendar, undoItem;
     private IEnumerable<BrainDumpItem> Filtered => State.Store.Items.Where(i => filter == "" || (filter == "unsorted" ? i.CategoryId is null : i.CategoryId?.ToString() == filter));

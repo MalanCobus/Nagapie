@@ -5,18 +5,29 @@ using Nagapie.BraindumpLite.Contracts.Domain;
 
 namespace Nagapie.BraindumpLite.Api.Data;
 
-public sealed class LegacyDataImporter(NagapieDbContext database)
+public sealed class LegacyDataImporter(NagapieDbContext database, ILogger<LegacyDataImporter> logger)
 {
     public async Task ImportAllAsync(CancellationToken cancellationToken)
     {
         var users = await database.Users.Where(user => !database.RelationalAccounts.Any(row => row.UserId == user.Id))
             .Select(user => user.Id).ToListAsync(cancellationToken);
+        var failures = 0;
         foreach (var userId in users)
         {
-            await EnsureImportedAsync(userId, cancellationToken);
-            database.ChangeTracker.Clear();
+            try
+            {
+                await EnsureImportedAsync(userId, cancellationToken);
+            }
+            catch (Exception error) when (error is InvalidDataException or JsonException)
+            {
+                failures++;
+                logger.LogError("Legacy import validation failed for account {AccountId}; original documents retained. Failure type {FailureType}", userId, error.GetType().Name);
+            }
+            finally { database.ChangeTracker.Clear(); }
         }
-        await UpgradeDraftPlanningAsync(cancellationToken);
+        failures += await UpgradeDraftPlanningAsync(cancellationToken);
+        if (failures > 0)
+            throw new InvalidDataException($"Legacy import validation failed for {failures} account(s). See account IDs in deployment logs.");
     }
 
     public async Task EnsureImportedAsync(string userId, CancellationToken cancellationToken)
@@ -33,6 +44,8 @@ public sealed class LegacyDataImporter(NagapieDbContext database)
         var categories = Read<List<Category>>("categories") ?? CategoryRules.CreateDefaults();
         var items = Read<ItemStore>("items") ?? new();
         var draft = Read<Draft>("draft");
+        if (items.Items is null)
+            throw new InvalidDataException();
         PlanningHorizons.UpgradeLegacy(items.Items);
         PlanningHorizons.UpgradeLegacy(draft?.Review ?? []);
         StoredDataValidator.Validate(new(), items, categories, draft ?? new());
@@ -70,7 +83,8 @@ public sealed class LegacyDataImporter(NagapieDbContext database)
         // Keep original JSON as a recovery archive. The marker prevents any later re-import after a reset.
         database.RelationalAccounts.Add(new()
         {
-            UserId = userId
+            UserId = userId,
+            SuccessfulAiDumps = items.AiDumps.Count
         });
         await database.SaveChangesAsync(cancellationToken);
         if (await database.Thoughts.CountAsync(row => row.UserId == userId, cancellationToken) != items.Items.Count ||
@@ -79,23 +93,34 @@ public sealed class LegacyDataImporter(NagapieDbContext database)
         await transaction.CommitAsync(cancellationToken);
     }
 
-    private async Task UpgradeDraftPlanningAsync(CancellationToken cancellationToken)
+    private async Task<int> UpgradeDraftPlanningAsync(CancellationToken cancellationToken)
     {
         var users = await database.Drafts.Where(row => row.ReviewJson != null && row.ReviewJson.Contains("next-week"))
             .Select(row => row.UserId).ToListAsync(cancellationToken);
+        var failures = 0;
         foreach (var userId in users)
         {
-            await using var transaction = await RelationalTransactions.BeginWriteAsync(database, userId, cancellationToken);
-            var row = await database.Drafts.SingleAsync(row => row.UserId == userId, cancellationToken);
-            var draft = row.ToContract();
-            if (PlanningHorizons.UpgradeLegacy(draft.Review ?? []))
+            try
             {
-                row.SetDraft(draft);
-                row.Version = Guid.NewGuid();
-                await database.SaveChangesAsync(cancellationToken);
+                await using var transaction = await RelationalTransactions.BeginWriteAsync(database, userId, cancellationToken);
+                var row = await database.Drafts.SingleAsync(row => row.UserId == userId, cancellationToken);
+                var draft = row.ToContract();
+                if (PlanningHorizons.UpgradeLegacy(draft.Review ?? []))
+                {
+                    StoredDataValidator.Validate(new(), new(), [], draft);
+                    row.SetDraft(draft);
+                    row.Version = Guid.NewGuid();
+                    await database.SaveChangesAsync(cancellationToken);
+                }
+                await transaction.CommitAsync(cancellationToken);
             }
-            await transaction.CommitAsync(cancellationToken);
-            database.ChangeTracker.Clear();
+            catch (Exception error) when (error is InvalidDataException or JsonException)
+            {
+                failures++;
+                logger.LogError("Draft upgrade validation failed for account {AccountId}; original retained. Failure type {FailureType}", userId, error.GetType().Name);
+            }
+            finally { database.ChangeTracker.Clear(); }
         }
+        return failures;
     }
 }

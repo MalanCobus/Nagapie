@@ -2,7 +2,7 @@
 
 The API serves a static WebAssembly PWA. All UI interactions run in the browser. The API uses ASP.NET Identity and EF Core with SQL Server/Azure SQL for accounts and all saved user content. There is no Interactive Server or SignalR session.
 
-The only external calls are explicit AI processing and license verification. The OpenAI-compatible HTTP adapter sits behind IAiBrainDumpProcessor. The browser uses IUserDataStore, implemented by SqlUserDataStore over authenticated HTTP. No user content is stored in browser storage.
+External calls include explicit AI processing and license verification. The OpenAI-compatible HTTP adapter sits behind IAiBrainDumpProcessor. The browser uses IUserDataStore, implemented by SqlUserDataStore over authenticated HTTP. No user content is stored in browser storage.
 
 The SQL/account upgrade supersedes the original local-only specification. See [SQL and accounts](sql-and-accounts.md) for security boundaries, migrations, and current account limitations.
 
@@ -23,7 +23,7 @@ Use `dotnet format Nagapie.BraindumpLite.sln --no-restore` for formatting and `d
 
 Thoughts and categories have composite (UserId, Id) keys and individual concurrency versions. Ownership is part of the foreign keys to categories and original dumps. Thought updates are sent as deltas; unchanged rows are not replaced. SQL indexes support owner/status/horizon queries and paginated dump history. Drafts have a dedicated row; their uncommitted review suggestions remain JSON. UserDocuments contains preferences/access JSON and the archived pre-upgrade documents. See sql-and-accounts.md for the migration and cutover procedure.
 
-LegacyDataImporter converts each account in a transaction, retaining the source documents and verifying row counts. RelationalAccounts records completion, so later restarts never reimport stale data. A per-user transaction-owned SQL application lock coordinates import, thought/category writes, draft saves, and reset across instances. Reads of collections include consistent reset tokens. The reset token changes on delete-all, preventing stale clients restoring cleared content. This is not live synchronization; the current thought list still loads the account's collection.
+LegacyDataImporter converts each account in a transaction, retaining the source documents and verifying row counts. RelationalAccounts records completion, so later restarts never reimport stale data. A per-user transaction-owned SQL application lock coordinates import, thought/category writes, draft saves, and reset across instances. Reads of collections include consistent reset tokens. The reset token changes on delete-all, preventing stale clients restoring cleared content. The thought list uses bounded SQL pages and filters. Reset epochs are checked around reads without serializable read transactions.
 
 Draft cleanup happens after commit. A repeated commit recognizes its source ID. Invalid saved data blocks writes instead of silently replacing it. A failed storage write never replaces the in-memory saved list with an optimistic result.
 
@@ -33,7 +33,7 @@ Time buckets never automatically move items. Let go is an archive reason, not de
 
 ## Access
 
-Both API and client read the same server configuration. The paywall is disabled by default. Identity cookie authentication is required for all data, AI and license endpoints. The optional paywall still uses a soft client-supplied count. Signed HMAC tokens protect paid unlock claims; they do not make the trial counter tamper-proof.
+Both API and client read the same server configuration. The paywall is disabled by default. Identity cookie authentication is required for all data, AI and license endpoints. The optional paywall uses server-recorded AI usage and account-bound license entitlements. Browser counts and tokens do not authorize access.
 
 ## Localization
 
@@ -42,3 +42,5 @@ Both .resx resource sets are embedded in the main client assembly. A scoped IStr
 ## PWA
 
 Published app assets are versioned by the SDK service-worker manifest. API responses are never cached. Old service workers are allowed to finish naturally; no skipWaiting or forced update during an active review.
+
+Thought mutations use durable operation receipts and server-owned timestamps. Typed client operations replace collection diffs. See [deployment and accounts](sql-and-accounts.md) for automated upgrades, restricted runtime SQL permissions and production-provider tests.

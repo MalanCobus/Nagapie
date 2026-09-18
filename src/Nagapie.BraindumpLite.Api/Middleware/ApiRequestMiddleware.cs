@@ -9,7 +9,7 @@ public sealed class ApiRequestMiddleware(RequestDelegate next, ILogger<ApiReques
     public async Task InvokeAsync(HttpContext context)
     {
         context.Response.Headers["X-Content-Type-Options"] = "nosniff";
-        context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+        context.Response.Headers["Referrer-Policy"] = "no-referrer";
         context.Response.Headers["X-Frame-Options"] = "DENY";
         if (context.Request.Path.StartsWithSegments("/api"))
         {
@@ -39,12 +39,17 @@ public sealed class ApiRequestMiddleware(RequestDelegate next, ILogger<ApiReques
             context.Response.StatusCode = StatusCodes.Status409Conflict;
             await context.Response.WriteAsJsonAsync(new ApiError(ErrorCodes.SaveConflict, context.TraceIdentifier));
         }
+        catch (TrialLimitException)
+        {
+            context.Response.StatusCode = StatusCodes.Status402PaymentRequired;
+            await context.Response.WriteAsJsonAsync(new ApiError(ErrorCodes.PaywallRequired, context.TraceIdentifier));
+        }
         catch (InvalidDataException)
         {
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
             await context.Response.WriteAsJsonAsync(new ApiError(ErrorCodes.InvalidInput, context.TraceIdentifier));
         }
-        catch (Exception)
+        catch (Exception exception)
         {
             if (!context.Response.HasStarted)
             {
@@ -52,7 +57,7 @@ public sealed class ApiRequestMiddleware(RequestDelegate next, ILogger<ApiReques
                 await context.Response.WriteAsJsonAsync(new ApiError(ErrorCodes.UnexpectedError, context.TraceIdentifier));
             }
 
-            logger.LogWarning("Request failed {CorrelationId}", context.TraceIdentifier);
+            SafeExceptionLog.Write(logger, exception, context.TraceIdentifier);
         }
         finally
         {

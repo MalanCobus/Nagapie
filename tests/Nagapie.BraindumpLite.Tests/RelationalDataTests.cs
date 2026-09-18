@@ -11,7 +11,7 @@ using Nagapie.BraindumpLite.Contracts.Domain;
 
 namespace Nagapie.BraindumpLite.Tests;
 
-public class RelationalDataTests
+public partial class RelationalDataTests
 {
     [Fact]
     public async Task PlannedDatePersistsAndInvalidDateCombinationsAreRejected()
@@ -59,6 +59,7 @@ public class RelationalDataTests
         var draft = await database.Drafts.SingleAsync();
         var date = new DateOnly(2027, 1, 2);
         draft.IsDeleted = false;
+        draft.Id = Guid.NewGuid();
         draft.ReviewJson = JsonSerializer.Serialize(new[]
         {
             new BrainDumpItem { Text = "Old planning", PlanningHorizon = "next-week" },

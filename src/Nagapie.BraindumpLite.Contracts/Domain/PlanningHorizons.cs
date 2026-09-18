@@ -10,7 +10,7 @@ public static class PlanningHorizons
     public static bool UpgradeLegacy(IEnumerable<BrainDumpItem> items)
     {
         var changed = false;
-        foreach (var item in items.Where(item => item.PlanningHorizon == "next-week"))
+        foreach (var item in items.Where(item => item is not null && item.PlanningHorizon == "next-week"))
         {
             item.PlanningHorizon = "later";
             item.PlannedDate = null;

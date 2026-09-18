@@ -1,0 +1,62 @@
+@inject AppState State
+@inject IStringLocalizer<AppResources> L
+
+<article class="thought-card @(Item.IsCompleted ? "completed" : "")">
+    @if (!Item.IsCompleted)
+    {
+        <button class="complete-button" disabled="@Busy" aria-label="@L["List_Complete"]" @onclick="() => Completed.InvokeAsync(Item)">
+            <Icon Name="check" Size="17" />
+        </button>
+    }
+    else
+    {
+        <span class="archive-icon"><Icon Name="@(Item.CompletionReason == "let-go" ? "leaf" : "check")" /></span>
+    }
+    <div class="thought-content">
+        <p>@Item.Text</p>
+        <span class="category-tag @(Category?.ColorToken ?? "stone")">@CategoryLabel</span>
+        @if (Item.PlannedDate is { } date)
+        {
+            <span class="completion-label"><Icon Name="calendar" Size="14" /> @date.ToString("d")</span>
+        }
+        @if (Item.IsCompleted)
+        {
+            <span class="completion-label">@L[Item.CompletionReason == "let-go" ? "List_Released" : "List_Done"]</span>
+        }
+    </div>
+    <div class="thought-actions">
+        @if (Item.IsCompleted)
+        {
+            <button class="text-button" disabled="@Busy" @onclick="() => Restored.InvokeAsync(Item)">@L["List_Restore"]</button>
+        }
+        else
+        {
+            <button class="icon-button" disabled="@Busy" title="@L["List_Edit"]" aria-label="@L["List_Edit"]" @onclick="() => Edited.InvokeAsync(Item)">
+                <Icon Name="edit" Size="17" />
+            </button>
+            <button class="icon-button" title="@L["Calendar_Export"]" aria-label="@L["Calendar_Export"]" @onclick="() => Calendar.InvokeAsync(Item)">
+                <Icon Name="calendar" Size="17" />
+            </button>
+            <button class="icon-button" disabled="@Busy" title="@L["List_LetGo"]" aria-label="@L["List_LetGo"]" @onclick="() => Released.InvokeAsync(Item)">
+                <Icon Name="leaf" Size="17" />
+            </button>
+        }
+        <button class="icon-button" disabled="@Busy" title="@L["List_Delete"]" aria-label="@L["List_Delete"]" @onclick="() => Deleted.InvokeAsync(Item)">
+            <Icon Name="trash" Size="17" />
+        </button>
+    </div>
+</article>
+
+@code {
+    [Parameter, EditorRequired] public BrainDumpItem Item { get; set; } = default!;
+    [Parameter] public bool Busy { get; set; }
+    [Parameter] public EventCallback<BrainDumpItem> Completed { get; set; }
+    [Parameter] public EventCallback<BrainDumpItem> Restored { get; set; }
+    [Parameter] public EventCallback<BrainDumpItem> Edited { get; set; }
+    [Parameter] public EventCallback<BrainDumpItem> Calendar { get; set; }
+    [Parameter] public EventCallback<BrainDumpItem> Released { get; set; }
+    [Parameter] public EventCallback<BrainDumpItem> Deleted { get; set; }
+    private Category? Category => State.Categories.FirstOrDefault(category => category.Id == Item.CategoryId);
+    private string CategoryLabel => Category is not { } category ? L["Category_None"] :
+        category.IsDefault ? L["Category_" + category.Key] : category.CustomName ?? "";
+}

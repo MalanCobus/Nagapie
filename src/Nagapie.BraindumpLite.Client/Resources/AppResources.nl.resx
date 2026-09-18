@@ -207,4 +207,7 @@
 <data name="Horizon_tomorrow" xml:space="preserve"><value>Morgen</value></data>
 <data name="Horizon_Hint_date" xml:space="preserve"><value>Gepland voor een datum die je koos.</value></data>
 <data name="Horizon_PickDate" xml:space="preserve"><value>Kies een datum</value></data>
+<data name="List_Previous" xml:space="preserve"><value>Vorige</value></data>
+<data name="List_Pages" xml:space="preserve"><value>Gedachten</value></data>
+<data name="List_Next" xml:space="preserve"><value>Volgende</value></data>
 </root>

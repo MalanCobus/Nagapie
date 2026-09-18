@@ -1,0 +1,23 @@
+@inject IStringLocalizer<AppResources> L
+
+<section class="horizon-section">
+    <div class="horizon-heading">
+        <div class="horizon-title">
+            <Icon Name="@(Horizon == "today" ? "sun" : Horizon is "tomorrow" or "date" ? "calendar" : "leaf")" />
+            <h2>@L["Horizon_" + Horizon]</h2>
+            <span class="count">@Count</span>
+        </div>
+        <p>@L["Horizon_Hint_" + Horizon]</p>
+    </div>
+    @if (Count == 0)
+    {
+        <div class="empty-bucket">@L["List_Empty"]</div>
+    }
+    @ChildContent
+</section>
+
+@code {
+    [Parameter, EditorRequired] public string Horizon { get; set; } = "";
+    [Parameter] public int Count { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

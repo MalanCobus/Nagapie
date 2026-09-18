@@ -15,4 +15,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>be1c8238-5870-4798-9410-d7042eeea2d9</UserSecretsId>
   </PropertyGroup>
+  <Target Name="RequireDeploymentPipeline" BeforeTargets="PrepareForPublish;MSDeployPublish;WebPublish;PublishOnly"
+          Condition="'$(WebPublishMethod)' == 'MSDeploy' Or '$(WebPublishMethod)' == 'ZipDeploy' Or '$(PublishProvider)' == 'AzureWebSite'">
+    <Error Text="Direct Azure publishing is disabled because it bypasses database upgrades. Run the GitHub Actions 'Deploy application' workflow. See docs/sql-and-accounts.md. Local folder publishing remains available." />
+  </Target>
 </Project>

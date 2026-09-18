@@ -1,10 +1,16 @@
 using System.Text.Json;
+using System.Net;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Nagapie.BraindumpLite.Api;
 using Nagapie.BraindumpLite.Api.Data;
 using Nagapie.BraindumpLite.Contracts;
@@ -34,6 +40,22 @@ public class SqlServerMigrationTests
         {
             // Exercise the actual old schema -> latest schema path, never EnsureCreated.
             await database.GetService<IMigrator>().MigrateAsync("20260918135021_InitialAccountsAndUserData");
+            using var services = new ServiceCollection().AddSingleton(database).BuildServiceProvider();
+            var readiness = new DatabaseReadiness(services.GetRequiredService<IServiceScopeFactory>(), NullLogger<DatabaseReadiness>.Instance);
+            Assert.Equal(HealthStatus.Unhealthy, (await readiness.CheckHealthAsync(new())).Status);
+            using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(web => web.ConfigureServices(collection =>
+            {
+                collection.RemoveAll<DbContextOptions<NagapieDbContext>>();
+                collection.RemoveAll<IDbContextOptionsConfiguration<NagapieDbContext>>();
+                collection.AddDbContext<NagapieDbContext>(configuration => configuration.UseSqlServer(builder.ConnectionString));
+            }));
+            using var client = factory.CreateClient(new()
+            {
+                BaseAddress = new Uri("https://localhost")
+            });
+            using var beforeUpgrade = await client.GetAsync("/health/ready");
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, beforeUpgrade.StatusCode);
+            Assert.Equal("Unhealthy", await beforeUpgrade.Content.ReadAsStringAsync());
             await database.Database.ExecuteSqlRawAsync("INSERT INTO AspNetUsers (Id, UserName, NormalizedUserName, EmailConfirmed, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEnabled, AccessFailedCount) VALUES ('owner', 'owner', 'OWNER', 1, 0, 0, 0, 0)");
             var legacy = new ItemStore { Items = [new() { Text = "Legacy thought", PlanningHorizon = "next-week" }] };
             var json = JsonSerializer.Serialize(legacy, JsonSerializerOptions.Web);
@@ -44,6 +66,7 @@ public class SqlServerMigrationTests
             await migrator.MigrateAsync();
             Assert.Empty(await database.Database.GetPendingMigrationsAsync());
             Assert.False(database.Database.HasPendingModelChanges());
+            Assert.Equal("Healthy", await client.GetStringAsync("/health/ready"));
             Assert.Equal("later", (await database.Thoughts.SingleAsync()).PlanningHorizon);
             Assert.Equal(json, (await database.UserDocuments.SingleAsync()).Json);
             var epoch = (await database.RelationalAccounts.SingleAsync()).Epoch;
@@ -65,6 +88,7 @@ public class SqlServerMigrationTests
             try
             {
                 database.ChangeTracker.Clear();
+                Assert.Equal(HealthStatus.Healthy, (await readiness.CheckHealthAsync(new())).Status);
                 var store = new RelationalDataStore(database, importer, Options.Create(new AccessOptions()));
                 var page = await store.QueryThoughtsAsync("owner", new(), default);
                 Assert.Single(page.Items);
@@ -80,6 +104,12 @@ public class SqlServerMigrationTests
                 await Assert.ThrowsAsync<SqlException>(() => database.Database.ExecuteSqlRawAsync("CREATE TABLE MustNotBeAllowed (Id int)"));
             }
             finally { await database.Database.ExecuteSqlRawAsync("REVERT"); }
+            // Connectivity and migration history alone cannot prove runtime readiness.
+            await database.Database.ExecuteSqlRawAsync("DROP TABLE ProcessedDumps");
+            Assert.Equal(HealthStatus.Unhealthy, (await readiness.CheckHealthAsync(new())).Status);
+            using var damagedSchema = await client.GetAsync("/health/ready");
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, damagedSchema.StatusCode);
+            Assert.Equal("Unhealthy", await damagedSchema.Content.ReadAsStringAsync());
         }
         finally
         {

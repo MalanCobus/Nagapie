@@ -1,0 +1,2 @@
+# Match .editorconfig on Windows and in the Linux deployment runner.
+* text=auto eol=lf

@@ -4,14 +4,34 @@ All user content belongs to the authenticated account in SQL Server/Azure SQL. M
 
 ## Automatic deployment upgrades
 
-Normal website startup never runs migrations in production. The manually dispatched `.github/workflows/deploy.yml` publishes the application, runs `--migrate` with a separate deployment connection, and deploys to Azure only if the upgrade and import validation succeed.
+The supported production release path is GitHub Actions **Deploy application**. Visual Studio's direct Azure Publish is blocked by the API project because it skips database upgrades. Local folder publishing remains available. Normal website startup never changes the database schema.
 
-Configure the GitHub `production` environment:
+Every release first runs the same verification workflow as CI, including actual SQL Server migrations and restricted-permission tests. That job publishes an artifact tied to the selected commit. The deployment job downloads that exact artifact, checks configuration, signs in to Azure, pauses the website, upgrades and validates SQL with the deployment identity, deploys the artifact, starts the website, and checks `/health/ready` with the website's own database identity. It does not rebuild between validation and deployment. Concurrent releases are serialized and a newer run does not cancel an in-progress upgrade.
+
+This implementation uses a maintenance window; it does not provide zero-downtime deployment. Pausing prevents older JSON-writing versions from changing data during conversion. Migration failure prevents code deployment. Any failure after pausing attempts to keep the site stopped, rather than resume an incompatible version. A timed-out runner or forcibly canceled job may not execute cleanup: check App Service state before recovery.
+
+### One-time hosting setup
+
+An Azure/GitHub administrator must configure the following once. These are hosting permissions and secrets, not manual database-maintenance steps.
+
+1. Create the GitHub `production` environment, restrict deployment branches to `main`, and configure required reviewers according to your release policy. Protect `main` and require CI. Review workflow changes as privileged deployment code.
+2. Configure [Azure OpenID Connect for GitHub Actions](https://learn.microsoft.com/en-us/azure/app-service/deploy-github-actions). The federated credential must trust `repo:MalanCobus/Nagapie:environment:production`. Scope its Azure deployment permissions to this App Service (for example, Website Contributor at the app resource), not the subscription. The workflow needs deployment, read, stop and start permissions.
+3. Set these variables and secret on the GitHub `production` environment:
 
 - Secret `NAGAPIE_MIGRATION_CONNECTION`: SQL connection for a deployment identity with schema and data permissions.
-- Secret `AZURE_WEBAPP_PUBLISH_PROFILE`: the target App Service publish profile.
-- Variable `AZURE_WEBAPP_NAME`: the existing App Service name.
-- Allow the deployment runner to reach SQL using your approved network arrangement. A self-hosted runner can avoid opening SQL to public hosted runners.
+- Variable `AZURE_WEBAPP_NAME`: `NagapieBraindumpLiteApi20260918152910` for the current site.
+- Variable `AZURE_RESOURCE_GROUP`: `nagapie-cobus` for the current site.
+- Variables `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`: the federated deployment identity and target subscription identifiers.
+
+4. Configure the website's runtime SQL connection as described below. Confirm both connections point to the **same server and database**, with different identities. Configure approved runner-to-SQL network access; for a private database, change the deployment job's `runs-on` to an organization-managed runner inside that network. Do not open SQL publicly to make a deployment pass.
+5. Confirm Azure SQL point-in-time recovery/retention and a tested restore procedure. Persist App Service authentication keys across releases.
+6. Remove legacy deployment routes: disable App Service SCM/FTP basic publishing authentication, revoke old publishing credentials, remove the obsolete `AZURE_WEBAPP_PUBLISH_PROFILE` secret, and limit Azure deployment rights to the pipeline and audited emergency operators. The project guard prevents accidental publishing; Azure permissions enforce it against bypasses. Disable any other deployment workflow or Deployment Center integration that publishes without this upgrade gate.
+
+### Each release
+
+Push the reviewed changes to `main`, open **GitHub → Actions → Deploy application → Run workflow**, select `main`, and complete any configured environment approval. The pipeline performs all upgrade and deployment steps automatically. No Azure console commands or application startup migration switches are needed.
+
+If verification/configuration fails before maintenance, the running site is untouched. If the upgrade, deployment or readiness check fails after maintenance starts, inspect the failed job's safe diagnostics, fix the cause, and rerun the release. Migrations and imports are retryable. Never automatically run migration `Down` methods or restart an old JSON-writing binary after conversion. For unrecoverable changes, restore to a separate database at a verified restore point and release a compatible application against it under an approved recovery procedure; a code rollback alone is not a database recovery.
 
 The website's `ConnectionStrings__Nagapie` must use a separate identity with `db_datareader` and `db_datawriter`, without `db_ddladmin` or `db_owner`. For an existing runtime identity previously granted DDL, remove that membership after configuring the deployment identity:
 
@@ -23,7 +43,7 @@ The SQL Server integration test verifies runtime reads, writes, retry receipts a
 
 EF tracks applied migrations and coordinates migration runners. Each legacy account imports in its own transaction. Validation failures log the account ID and failure type, preserve original documents, continue validating other accounts, and make the deployment command exit unsuccessfully. Existing website startup is independent of this command. Fix the reported account's legacy data with an appropriate backup/recovery procedure and rerun the deployment.
 
-Before upgrading a deployment that still writes legacy JSON, stop those old writers during conversion. Keep a restore point. Additive schema changes support the current relational app during deployment, but the older JSON app must never write during or after import. Do not run migration Down methods after users edit relational data.
+The workflow pauses the target App Service during conversion. If another service or deployment slot also writes to this database, include it in the maintenance procedure before running the upgrade. The older JSON app must never write during or after import.
 
 This separation follows [Microsoft's migration deployment guidance](https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/applying).
 

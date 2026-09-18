@@ -6,6 +6,8 @@ A quiet, bilingual place to capture thoughts, review AI suggestions, and decide 
 
 Requires the .NET 10 SDK and SQL Server Express LocalDB. See [SQL and account setup](docs/sql-and-accounts.md), including the Azure steps. Database upgrades run automatically in the deployment workflow with a separate SQL identity; production website startup does not change schema.
 
+Deploy Azure releases with **GitHub Actions → Deploy application**, after the one-time hosting setup in that guide. The workflow tests, packages, upgrades SQL, deploys, and checks database readiness. Direct Visual Studio Azure publishing is blocked. Releases currently use a maintenance window.
+
 ```powershell
 dotnet run --project src/Nagapie.BraindumpLite.Api -- --migrate
 dotnet run --project src/Nagapie.BraindumpLite.Api --launch-profile http

@@ -5,6 +5,7 @@ using Nagapie.BraindumpLite.Api.Data;
 var builder = WebApplication.CreateBuilder(args);
 builder.AddNagapieServices();
 builder.AddSqlAccounts();
+builder.Services.AddHealthChecks().AddCheck<DatabaseReadiness>("database");
 var app = builder.Build();
 var migrateOnly = args.Contains("--migrate");
 if (migrateOnly || (app.Environment.IsDevelopment() && builder.Configuration.GetValue("Database:ApplyMigrationsOnStartup", false)))
@@ -38,6 +39,7 @@ app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
+app.MapHealthChecks("/health/ready");
 app.MapAccountEndpoints();
 app.MapUserDataEndpoints();
 app.MapNagapieEndpoints();

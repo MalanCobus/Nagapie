@@ -16,8 +16,9 @@
 - [ ] Test multi-device conflict messages and session changes with real browsers.
 - [ ] Enable payment only after the above checks pass.
 
-- [ ] Configure separate deployment and runtime SQL identities; runtime has read/write only. Configure the deployment workflow secrets and verify migration/import succeeds before publishing.
-- [ ] For the relational upgrade, confirm a restore point and stop old app instances before publishing. Verify imported data before reopening normal use; close old PWA tabs. See sql-and-accounts.md.
+- [ ] Configure the protected GitHub production environment, Azure federated deployment identity, deployment variables and migration secret. Restrict direct Azure publishing permissions and remove legacy deployment routes. See sql-and-accounts.md.
+- [ ] Configure separate deployment and runtime SQL identities pointing to the same database; runtime has read/write only. Verify the Deploy application workflow passes SQL tests, upgrade/import, deployment and readiness checks.
+- [ ] Confirm a restore point and maintenance window. The pipeline pauses the target site; stop any additional writers/slots before the relational conversion. Close old PWA tabs.
 - [ ] Configure database backup/restore and durable authentication key storage.
 - Email confirmation and password recovery are deferred by product choice; no email service configuration is required for this deployment.
 - [ ] Decide and implement account deletion and retention policies.

@@ -1,6 +1,6 @@
 @page "/unlock"
 @inherits PageBase
-<PageTitle>Nagapie — @L["Access_Title"]</PageTitle>
+<PageTitle>Braindump — @L["Access_Title"]</PageTitle>
 <section class="welcome"><Botanical/><h1>@L["Access_Title"]</h1>
 @if (!State.Config.PaywallEnabled) { <p class="lead">@L["Access_Test"]</p><a class="button primary" href="/">@L["List_New"]</a> }
 else if (State.Access.UnlockToken is not null && success) { <p class="lead">@L["Access_Unlocked"]</p><a class="button primary" href="/">@L["List_New"]</a> }

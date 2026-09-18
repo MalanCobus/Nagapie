@@ -32,6 +32,6 @@ public static class StoredDataValidator
             item.Id == Guid.Empty ||
             string.IsNullOrWhiteSpace(item.Text) ||
             item.Text.Length > 5000 ||
-            !PlanningHorizons.All.Contains(item.PlanningHorizon) ||
+            !PlanningHorizons.IsValid(item) ||
             item.CompletionReason is not (null or "completed" or "let-go");
 }

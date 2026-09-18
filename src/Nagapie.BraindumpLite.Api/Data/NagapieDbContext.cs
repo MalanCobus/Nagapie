@@ -60,6 +60,7 @@ public sealed class NagapieDbContext(DbContextOptions<NagapieDbContext> options)
             entity.Property(row => row.Version).IsConcurrencyToken();
             entity.Property(row => row.Text).HasMaxLength(5000);
             entity.Property(row => row.PlanningHorizon).HasMaxLength(16);
+            entity.Property(row => row.PlannedDate).HasColumnType("date");
             entity.Property(row => row.CompletionReason).HasMaxLength(16);
             entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(row => row.UserId);
             entity.HasOne<UserCategory>().WithMany().HasForeignKey(row => new { row.UserId, row.CategoryId })

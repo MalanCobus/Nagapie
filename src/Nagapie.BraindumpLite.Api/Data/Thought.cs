@@ -17,6 +17,10 @@ public sealed class Thought
     }
     public string Text { get; set; } = "";
     public string PlanningHorizon { get; set; } = "later";
+    public DateOnly? PlannedDate
+    {
+        get; set;
+    }
     public string InputMethod { get; set; } = "text";
     public string? CompletionReason
     {

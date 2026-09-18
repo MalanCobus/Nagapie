@@ -108,6 +108,7 @@ public sealed partial class RelationalDataStore(NagapieDbContext database, Legac
                 row.Text = change.Value.Text.Trim();
                 row.CategoryId = change.Value.CategoryId;
                 row.PlanningHorizon = change.Value.PlanningHorizon;
+                row.PlannedDate = change.Value.PlannedDate;
                 row.CompletionReason = change.Value.CompletionReason;
                 row.CompletedAtUtc = change.Value.CompletedAtUtc;
                 row.UpdatedAtUtc = DateTimeOffset.UtcNow;

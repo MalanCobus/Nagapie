@@ -1,0 +1,7 @@
+@inherits PageBase
+
+<div class="category-form">
+    <label>@L["Category_New"]<input maxlength="30" @bind="name" @bind:event="oninput" /></label>
+    <button type="button" class="button secondary" disabled="@(Busy || string.IsNullOrWhiteSpace(name))" @onclick="AddAsync"><Icon Name="plus" />@L["Category_Add"]</button>
+</div>
+<ErrorMessage Code="@Error" />

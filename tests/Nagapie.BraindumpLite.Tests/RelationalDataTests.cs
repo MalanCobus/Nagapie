@@ -13,6 +13,64 @@ namespace Nagapie.BraindumpLite.Tests;
 
 public class RelationalDataTests
 {
+    [Fact]
+    public async Task PlannedDatePersistsAndInvalidDateCombinationsAreRejected()
+    {
+        using var factory = Factory();
+        using var client = await AccountTestSupport.CreateUserAsync(factory);
+        var plannedDate = new DateOnly(2027, 3, 28);
+        var item = new BrainDumpItem { Text = "Plan a trip", PlanningHorizon = "date", PlannedDate = plannedDate };
+        var snapshot = await Commit(client, item);
+        var saved = Assert.Single(snapshot.Data!.Value.Deserialize<ItemStore>(JsonSerializerOptions.Web)!.Items);
+        Assert.Equal(plannedDate, saved.PlannedDate);
+        Task<HttpResponseMessage> Change(BrainDumpItem value) => client.PostAsJsonAsync("/api/data/items/changes",
+            new SaveThoughtsRequest(snapshot.Version, [new(value, snapshot.RowVersions![item.Id])], []));
+        Assert.Equal(HttpStatusCode.BadRequest, (await Change(item with
+        {
+            PlannedDate = null
+        })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await Change(item with
+        {
+            PlanningHorizon = "tomorrow"
+        })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await Change(item with
+        {
+            PlanningHorizon = "next-week",
+            PlannedDate = null
+        })).StatusCode);
+        (await Change(item with
+        {
+            PlanningHorizon = "tomorrow",
+            PlannedDate = null
+        })).EnsureSuccessStatusCode();
+        var updated = Assert.Single((await Read(client, "items")).Data!.Value.Deserialize<ItemStore>(JsonSerializerOptions.Web)!.Items);
+        Assert.Equal("tomorrow", updated.PlanningHorizon);
+        Assert.Null(updated.PlannedDate);
+    }
+
+    [Fact]
+    public async Task DraftReviewUpgradeMovesNextWeekToLaterAndKeepsChosenDates()
+    {
+        using var factory = Factory();
+        using var client = await AccountTestSupport.CreateUserAsync(factory);
+        await Read(client, "draft");
+        using var scope = factory.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<NagapieDbContext>();
+        var draft = await database.Drafts.SingleAsync();
+        var date = new DateOnly(2027, 1, 2);
+        draft.IsDeleted = false;
+        draft.ReviewJson = JsonSerializer.Serialize(new[]
+        {
+            new BrainDumpItem { Text = "Old planning", PlanningHorizon = "next-week" },
+            new BrainDumpItem { Text = "Exact day", PlanningHorizon = "date", PlannedDate = date }
+        }, JsonSerializerOptions.Web);
+        await database.SaveChangesAsync();
+        await scope.ServiceProvider.GetRequiredService<LegacyDataImporter>().ImportAllAsync(default);
+        var saved = (await Read(client, "draft")).Data!.Value.Deserialize<Draft>(JsonSerializerOptions.Web)!;
+        Assert.Equal("later", saved.Review![0].PlanningHorizon);
+        Assert.Equal(date, saved.Review[1].PlannedDate);
+    }
+
     private static WebApplicationFactory<Program> Factory() => new WebApplicationFactory<Program>()
         .WithWebHostBuilder(builder => builder.UseEnvironment("Development").ConfigureServices(AccountTestSupport.UseTestDatabase));
     private static async Task<UserDocumentResponse> Read(HttpClient client, string key) =>
@@ -203,6 +261,7 @@ internal static class ThoughtAssertions
         CategoryId = row.CategoryId,
         Text = row.Text,
         PlanningHorizon = row.PlanningHorizon,
+        PlannedDate = row.PlannedDate,
         InputMethod = row.InputMethod,
         CompletionReason = row.CompletionReason,
         CreatedAtUtc = row.CreatedAtUtc,

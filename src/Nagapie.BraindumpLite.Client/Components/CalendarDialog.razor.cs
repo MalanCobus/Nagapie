@@ -20,6 +20,8 @@ public partial class CalendarDialog
     private DateTime date = DateTime.Today;
     private TimeOnly start = new(9, 0), end = new(9, 30);
     private bool allDay;
+    protected override void OnInitialized() => date = Item.PlannedDate?.ToDateTime(TimeOnly.MinValue)
+        ?? (Item.PlanningHorizon == "tomorrow" ? DateTime.Today.AddDays(1) : DateTime.Today);
     private Task DownloadAsync() => Run(async () =>
     {
         if (!allDay && end <= start)

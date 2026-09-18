@@ -16,4 +16,14 @@ public partial class ItemFields
 
     private string textId = "text-" + Guid.NewGuid();
     private Task Changed() => OnChanged.InvokeAsync();
+    private Task HorizonChanged()
+    {
+        Item.PlannedDate = Item.PlanningHorizon == "date" ? Item.PlannedDate ?? DateOnly.FromDateTime(DateTime.Today) : null;
+        return Changed();
+    }
+    private Task CategoryCreated(Guid id)
+    {
+        Item.CategoryId = id;
+        return Changed();
+    }
 }

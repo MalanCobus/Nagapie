@@ -4,6 +4,8 @@ Nagapie now requires an account. Registration, login and logout are included. Al
 
 ## What is saved
 
+The app is named **Braindump**, under the Nagapie umbrella. Planning choices are Today, Tomorrow, Later, and a chosen calendar date. `Thoughts.PlannedDate` is a nullable SQL `date`, so a selected day does not shift with time zones. Startup moves previous `next-week` items and draft suggestions to `later`. Temporary review suggestions retain their dates in draft JSON. Today/Tomorrow remain explicit planning buckets, not automatic reminders or rolling dates.
+
 - Identity tables: email, password hash, account security and lockout information. Passwords are never stored as plain text.
 - `Thoughts`: one row per thought/todo, with typed text, category, planning horizon, completion, timestamps, source dump, and concurrency version.
 - `Categories`: one row per user-owned category. Composite foreign keys prevent thoughts linking to another user's category or dump.

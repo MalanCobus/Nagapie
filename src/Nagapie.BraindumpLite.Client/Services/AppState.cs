@@ -139,7 +139,7 @@ public sealed class AppState(IUserDataStore storage, INagapieApiClient api, IJSR
     public async Task UpdateAsync(BrainDumpItem item)
     {
         RequireStorage();
-        if (string.IsNullOrWhiteSpace(item.Text) || item.Text.Length > 5000 || !Horizons.Contains(item.PlanningHorizon))
+        if (string.IsNullOrWhiteSpace(item.Text) || item.Text.Length > 5000 || !PlanningHorizons.IsValid(item))
         {
             throw new InvalidDataException(ErrorCodes.InvalidInput);
         }

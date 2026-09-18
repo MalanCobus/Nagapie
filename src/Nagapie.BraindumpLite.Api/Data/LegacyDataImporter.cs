@@ -16,6 +16,7 @@ public sealed class LegacyDataImporter(NagapieDbContext database)
             await EnsureImportedAsync(userId, cancellationToken);
             database.ChangeTracker.Clear();
         }
+        await UpgradeDraftPlanningAsync(cancellationToken);
     }
 
     public async Task EnsureImportedAsync(string userId, CancellationToken cancellationToken)
@@ -32,6 +33,8 @@ public sealed class LegacyDataImporter(NagapieDbContext database)
         var categories = Read<List<Category>>("categories") ?? CategoryRules.CreateDefaults();
         var items = Read<ItemStore>("items") ?? new();
         var draft = Read<Draft>("draft");
+        PlanningHorizons.UpgradeLegacy(items.Items);
+        PlanningHorizons.UpgradeLegacy(draft?.Review ?? []);
         StoredDataValidator.Validate(new(), items, categories, draft ?? new());
         if (items.SavedDumps.Contains(Guid.Empty) || items.AiDumps.Contains(Guid.Empty))
             throw new InvalidDataException("Legacy data contains an invalid dump receipt. Original data retained.");
@@ -74,5 +77,25 @@ public sealed class LegacyDataImporter(NagapieDbContext database)
             await database.Categories.CountAsync(row => row.UserId == userId, cancellationToken) != categories.Count)
             throw new InvalidDataException("Relational import verification failed. Original data retained.");
         await transaction.CommitAsync(cancellationToken);
+    }
+
+    private async Task UpgradeDraftPlanningAsync(CancellationToken cancellationToken)
+    {
+        var users = await database.Drafts.Where(row => row.ReviewJson != null && row.ReviewJson.Contains("next-week"))
+            .Select(row => row.UserId).ToListAsync(cancellationToken);
+        foreach (var userId in users)
+        {
+            await using var transaction = await RelationalTransactions.BeginWriteAsync(database, userId, cancellationToken);
+            var row = await database.Drafts.SingleAsync(row => row.UserId == userId, cancellationToken);
+            var draft = row.ToContract();
+            if (PlanningHorizons.UpgradeLegacy(draft.Review ?? []))
+            {
+                row.SetDraft(draft);
+                row.Version = Guid.NewGuid();
+                await database.SaveChangesAsync(cancellationToken);
+            }
+            await transaction.CommitAsync(cancellationToken);
+            database.ChangeTracker.Clear();
+        }
     }
 }
